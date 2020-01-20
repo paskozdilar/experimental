@@ -23,8 +23,13 @@ conf = RawCapture.Config(
     focus=40
 )
 
+print('Starting RawCapture...')
 rc = RawCapture()
+
+print('Starting FrameMuxer...')
 fm = FrameMuxer()
+
+print('Starting Screen...')
 s = Screen()
 
 print(f'Config success: {rc.set_config(conf)}')
@@ -33,10 +38,8 @@ fm.start(actor=rc)
 
 while True:
     s.show()
-    s.update_image(fm.get_frame()[0])
+    s.update_image(fm.get_frame())
     key = s.wait(1)
-
-    print(key)
 
     if key in (Key.ENTER, Key.ESC):
         break

@@ -6,7 +6,7 @@ import cv2
 
 @dataclasses.dataclass
 class Frame:
-    frame: cv2.UMat = None
+    data: cv2.UMat = None
     timestamp: datetime.datetime = None
 
     fmt: str = '%F_%H-%M-%S-%f'

@@ -10,6 +10,7 @@
 """
 
 import datetime
+from typing import Union
 
 import cv2
 
@@ -60,13 +61,13 @@ class FrameMuxer(Actor):
             method='ping',
         )(actor=actor, no_wait=True)
 
-    def get_frame(self):
+    def get_frame(self) -> Union[None, Frame]:
         """
             Returns None or a Frame object containing the last frame with timestamp.
         """
         if self.frame is None:
-            return None, None
+            return None
 
         rgb_frame = cv2.cvtColor(self.frame, self.colorspace)
 
-        return Frame(frame=rgb_frame, timestamp=self.timestamp)
+        return Frame(data=rgb_frame, timestamp=self.timestamp)

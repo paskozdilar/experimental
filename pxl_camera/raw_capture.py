@@ -109,7 +109,7 @@ class RawCapture(Actor):
             else:
                 setattr(self.config, key, self.capture.get(cv2_attribute))
 
-            self.logger.debug(f'Setting config {key} to {value}: {"success" if success else "failure"}')
+            self.logger.debug(f'Setting {key} to {value}: {"success" if success else "failure"}')
 
         return True
 

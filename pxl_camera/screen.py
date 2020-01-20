@@ -2,6 +2,7 @@ import cv2
 
 from pxl_actor.actor import Actor
 
+from pxl_camera.frame import Frame
 from pxl_camera.util import image
 
 
@@ -36,7 +37,7 @@ class Screen(Actor):
 
     def show(self):
         if not self.open:
-            cv2.namedWindow(self.name, cv2.WINDOW_NORMAL | cv2.WINDOW_FREERATIO | cv2.WINDOW_GUI_NORMAL)
+            cv2.namedWindow(self.name, cv2.WINDOW_NORMAL | cv2.WINDOW_FULLSCREEN | cv2.WINDOW_GUI_NORMAL)
             cv2.resizeWindow(self.name, 640, 480)
             cv2.startWindowThread()
 
@@ -44,13 +45,12 @@ class Screen(Actor):
         if self.open:
             cv2.destroyWindow(self.name)
 
-    def update_image(self, frame):
+    def update_image(self, frame: Frame):
         """
             Updates screen with RGB encoded frame.
             Assumes frame is copied and won't be modified concurrently by another actor.
         """
-        if frame is not None:
-            cv2.imshow(self.name, frame)
+        cv2.imshow(self.name, frame.data)
 
     def wait(self, timeout=0):
         return cv2.waitKey(timeout)
