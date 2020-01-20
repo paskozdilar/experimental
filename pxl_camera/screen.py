@@ -1,16 +1,26 @@
+"""
+    Reference UI implementation for live-streaming frames, setting focus
+    and general camera debugging.
+"""
+
+import enum
+
 import cv2
+import numpy
 
 from pxl_actor.actor import Actor
 
 from pxl_camera.frame import Frame
-from pxl_camera.util import image
 
 
 # TODO: Add concept + support for ROI mechanism
 class Screen(Actor):
-    """
-        Abstract class for showing view and selecting region-of-interest.
-    """
+
+    class Key(enum.IntEnum):
+        NONE = -1
+
+        ENTER = 13
+        ESC = 27
 
     _screen_names = set()
 
@@ -24,6 +34,10 @@ class Screen(Actor):
 
         return name(i)
 
+    @staticmethod
+    def empty_image(width, height):
+        return numpy.zeros((int(width), int(height), 3), numpy.uint8)
+
     def __init__(self, name=None):
         super(Screen, self).__init__()
 
@@ -32,7 +46,7 @@ class Screen(Actor):
         Screen._screen_names.add(name)
 
         self.open = False
-        self.image = image.empty_image(640, 480)
+        self.image = Screen.empty_image(640, 480)
         self.name = name
 
     def show(self, actor=None):
