@@ -1,13 +1,12 @@
-import dataclasses
-import datetime
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
 
-import cv2
 
-
-@dataclasses.dataclass
+@dataclass
 class Frame:
-    data: cv2.UMat = None
-    timestamp: datetime.datetime = None
+    data: Any = None
+    timestamp: datetime = None
 
     fmt: str = '%F_%H-%M-%S-%f'
 
