@@ -15,6 +15,7 @@ import cv2
 
 from pxl_actor.actor import Actor
 
+from pxl_camera.frame import Frame
 from pxl_camera.raw_capture import RawCapture
 
 
@@ -61,13 +62,11 @@ class FrameMuxer(Actor):
 
     def get_frame(self):
         """
-            Returns tuple consisting of:
-              - the last frame in RGB (technically, BGR inside OpenCV) color space
-              - time when the frame has been captured
+            Returns None or a Frame object containing the last frame with timestamp.
         """
         if self.frame is None:
             return None, None
 
-        rgb_image = cv2.cvtColor(self.frame, self.colorspace)
+        rgb_frame = cv2.cvtColor(self.frame, self.colorspace)
 
-        return rgb_image, self.timestamp
+        return Frame(frame=rgb_frame, timestamp=self.timestamp)
