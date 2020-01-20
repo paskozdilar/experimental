@@ -32,17 +32,23 @@ class Screen(Actor):
         Screen._screen_names.add(name)
 
         self.open = False
-        self.image = image.empty_image(1920, 1080)
+        self.image = image.empty_image(640, 480)
         self.name = name
 
-    def show(self):
+    def show(self, actor=None):
         if not self.open:
-            cv2.namedWindow(self.name, cv2.WINDOW_NORMAL | cv2.WINDOW_FULLSCREEN | cv2.WINDOW_GUI_NORMAL)
+            cv2.namedWindow(self.name, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO | cv2.WINDOW_GUI_EXPANDED)
             cv2.resizeWindow(self.name, 640, 480)
+
+            if actor is not None:
+                cv2.createTrackbar('Focus', self.name, 0, 256, lambda value: actor.set_focus(focus=value))
+
+            self.open = True
 
     def hide(self):
         if self.open:
             cv2.destroyWindow(self.name)
+            self.open = False
 
     def update_image(self, frame: Frame):
         """
