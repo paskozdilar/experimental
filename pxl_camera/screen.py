@@ -35,11 +35,6 @@ class Screen(Actor):
         self.name = name
         self.key = None
 
-    def __del__(self):
-        self.hide()
-        Screen._screen_names.remove(self.name)
-        super(Screen, self).__del__()
-
     def show(self):
         if not self.open:
             cv2.namedWindow(self.name, cv2.WINDOW_NORMAL | cv2.WINDOW_FREERATIO | cv2.WINDOW_GUI_NORMAL)
@@ -57,7 +52,7 @@ class Screen(Actor):
             cv2.imshow(self.name, frame)
             self.key = cv2.waitKey(1)
 
-    def wait(self, timeout=None):
+    def wait(self, timeout=0):
         key = cv2.waitKey(timeout)
 
         if key == Key.NONE:
@@ -65,3 +60,7 @@ class Screen(Actor):
 
         if key == Key.ENTER or key == Key.ESC:
             return True
+
+    def on_exit(self):
+        self.hide()
+        Screen._screen_names.remove(self.name)
