@@ -1,3 +1,14 @@
+"""
+    Frame muxer class for timestamping and multiplexing
+    frames from a single camera.
+
+    If no frames are available, returns None.
+
+    Otherwise returns a Frame object containing the frame
+    in RGB format and timestamp of the captured frame.
+
+"""
+
 import datetime
 
 import cv2
