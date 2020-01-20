@@ -37,6 +37,7 @@ class Screen(Actor):
     def show(self):
         if not self.open:
             cv2.namedWindow(self.name, cv2.WINDOW_NORMAL | cv2.WINDOW_FREERATIO | cv2.WINDOW_GUI_NORMAL)
+            cv2.resizeWindow(self.name, 640, 480)
             cv2.startWindowThread()
 
     def hide(self):
