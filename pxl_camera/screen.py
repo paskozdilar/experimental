@@ -3,9 +3,9 @@ import cv2
 from pxl_actor.actor import Actor
 
 from pxl_camera.util import image
-from pxl_camera.util.ascii import Key
 
 
+# TODO: Add concept + support for ROI mechanism
 class Screen(Actor):
     """
         Abstract class for showing view and selecting region-of-interest.
@@ -33,11 +33,11 @@ class Screen(Actor):
         self.open = False
         self.image = image.empty_image(1920, 1080)
         self.name = name
-        self.key = None
 
     def show(self):
         if not self.open:
             cv2.namedWindow(self.name, cv2.WINDOW_NORMAL | cv2.WINDOW_FREERATIO | cv2.WINDOW_GUI_NORMAL)
+            cv2.startWindowThread()
 
     def hide(self):
         if self.open:
@@ -50,16 +50,9 @@ class Screen(Actor):
         """
         if frame is not None:
             cv2.imshow(self.name, frame)
-            self.key = cv2.waitKey(1)
 
     def wait(self, timeout=0):
-        key = cv2.waitKey(timeout)
-
-        if key == Key.NONE:
-            return None
-
-        if key == Key.ENTER or key == Key.ESC:
-            return True
+        return cv2.waitKey(timeout)
 
     def on_exit(self):
         self.hide()

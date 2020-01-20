@@ -36,13 +36,11 @@ class FrameMuxer(Actor):
             return
 
         # Frame is valid
-        self.frame = actor.get_frame()
-        self.timestamp = datetime.datetime.now()
-
-        print(self.timestamp)
+        self.frame = frame
+        self.timestamp = timestamp
 
         if self.colorspace is None:
-            self.colorspace = getattr(cv2, f'COLOR_YUV2RGB_{actor.config.fourcc.upper()}')
+            self.colorspace = getattr(cv2, f'COLOR_YUV2BGR_{actor.config.fourcc.upper()}')
 
         # noinspection PyCallByClass
         Actor.ProxyMethod(
