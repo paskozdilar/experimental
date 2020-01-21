@@ -9,4 +9,4 @@ from pxl_actor.actor import Actor
 
 
 class CameraManager(Actor):
-
+    ...
