@@ -5,7 +5,9 @@ from typing import Any
 
 @dataclass
 class Frame:
-    data: Any = None
+    width: int = None
+    height: int = None
+    frame: Any = None
     timestamp: datetime = None
 
     fmt: str = '%F_%H-%M-%S-%f'

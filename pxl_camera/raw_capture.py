@@ -47,10 +47,13 @@ class RawCapture(Actor):
         return cv2.cvtColor(raw_frame, self._convert_code)
 
     def set_focus(self, focus):
-        return self.capture.set(cv2.CAP_PROP_FOCUS, focus)
+        success = self.capture.set(cv2.CAP_PROP_FOCUS, focus)
+        if success:
+            self.config.focus = focus
+        return success
 
     def get_focus(self):
-        return self.capture.get(cv2.CAP_PROP_FOCUS)
+        return self.config.focus
 
     def set_config(self, config: Config):
         """
@@ -128,3 +131,6 @@ class RawCapture(Actor):
             return None
 
         return self.frame
+
+    def on_exit(self):
+        self.capture.release()

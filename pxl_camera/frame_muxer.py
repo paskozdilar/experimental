@@ -30,9 +30,9 @@ class FrameMuxer(Actor):
         self.timestamp = None
         self.started = None
 
-    def start(self, actor: RawCapture):
+    def start(self, capture_actor: RawCapture):
         self.started = True
-        self.ping(actor)
+        self.ping(capture_actor)
 
     def stop(self):
         self.started = False
@@ -69,5 +69,9 @@ class FrameMuxer(Actor):
             return None
 
         rgb_frame = cv2.cvtColor(self.frame, self.colorspace)
+        np_mat = self.frame.get()
 
-        return Frame(data=rgb_frame, timestamp=self.timestamp)
+        width = len(np_mat[0])
+        height = len(np_mat)
+
+        return Frame(width=width, height=height, frame=rgb_frame, timestamp=self.timestamp)
