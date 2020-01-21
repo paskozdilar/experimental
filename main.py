@@ -1,19 +1,15 @@
 import collections
 import logging
-import threading
 import time
 
 import cv2
 import numpy
-from pxl_actor.actor import Actor
 
 from pxl_camera.frame_muxer import FrameMuxer
-from pxl_camera.image_processor import crop, abs_diff, sharpness, grid_diff, grid_diff_factor, abs_diff_factor
+from pxl_camera.util.image_processing import abs_diff, abs_diff_factor
 from pxl_camera.raw_capture import RawCapture
 
 from pxl_camera.screen import Screen
-from pxl_camera.detect import Detect
-
 
 logging.basicConfig(level=logging.DEBUG)
 

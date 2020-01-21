@@ -1,7 +1,6 @@
 """
     Various image processing utilities used for image filtering.
 """
-import time
 from functools import reduce, lru_cache
 
 import cv2
