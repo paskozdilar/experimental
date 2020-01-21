@@ -1,3 +1,4 @@
+import collections
 import logging
 import threading
 import time
@@ -7,7 +8,7 @@ import numpy
 from pxl_actor.actor import Actor
 
 from pxl_camera.frame_muxer import FrameMuxer
-from pxl_camera.image_processor import crop, abs_diff, sharpness, grid_diff, grid_diff_factor
+from pxl_camera.image_processor import crop, abs_diff, sharpness, grid_diff, grid_diff_factor, abs_diff_factor
 from pxl_camera.raw_capture import RawCapture
 
 from pxl_camera.screen import Screen
@@ -43,11 +44,15 @@ print('Waiting for first frame...')
 frame = fm.get_frame()
 last_frame = frame
 
+frame_deque = collections.deque(maxlen=10)
+frame_deque.append(last_frame)
+
 FPS = 15
-DIFF_GRID = 1
-DIFF_THRESHOLD = 10
+DIFF_THRESHOLD = 1
 GRID_ROWS = 5
 GRID_COLS = 5
+
+kernel = numpy.ones((10, 10), numpy.uint8)
 
 while True:
     frame = fm.get_frame()
@@ -59,18 +64,23 @@ while True:
         time_diff = frame.timestamp - last_frame.timestamp
         frame_diff = abs_diff(frame.frame, last_frame.frame)
 
+        frame_diff = cv2.erode(frame_diff, kernel, frame_diff)
+        frame_diff = cv2.dilate(frame_diff, kernel, frame_diff)
+
         start_time = time.time()
-        diff_factor = grid_diff_factor(frame.frame, last_frame.frame, GRID_ROWS, GRID_COLS, DIFF_THRESHOLD)
+        diff_factor = abs_diff_factor(frame.frame, last_frame.frame)
         end_time = time.time()
         print(end_time - start_time)
 
-        if diff_factor < DIFF_GRID:
+        if diff_factor < DIFF_THRESHOLD:
+            frame_deque.append(frame)
             s.set_text(f'Movement factor: {diff_factor}', color='blue')
         else:
+            # What the fuck did I do here?
+            last_frame = frame_deque.popleft()
+            frame_deque.clear()
+            frame_deque.append(last_frame)
             s.set_text(f'Movement factor: {diff_factor}', color='red')
-
-        if diff_factor == 0:
-            last_frame = frame
 
         # s.update_image(frame.frame)
         s.update_image(frame_diff)

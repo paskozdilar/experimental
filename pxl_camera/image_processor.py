@@ -45,16 +45,15 @@ def sharpness(image: cv2.UMat):
     return cv2.Laplacian(image, cv2.CV_64FC3).get().var()
 
 
-def abs_diff(image_a: cv2.UMat, image_b: cv2.UMat, dst=None):
+def abs_diff(image_a: cv2.UMat, image_b: cv2.UMat):
     """
         Calculates absolute difference between two RGB frames.
     :param image_a: Image A.
     :param image_b: Image B.
-    :param dst: (optional) Image where image difference will be stored.
     :return: Per-channel absolute difference between A and B.
     """
 
-    return cv2.absdiff(image_a, image_b, dst=dst)
+    return cv2.threshold(cv2.absdiff(image_a, image_b), thresh=50, maxval=255, type=cv2.THRESH_BINARY)[1]
 
 
 def abs_diff_factor(image_a: cv2.UMat, image_b: cv2.UMat):
@@ -64,6 +63,7 @@ def abs_diff_factor(image_a: cv2.UMat, image_b: cv2.UMat):
     width, height, channels = image_size(image_a)  # assume image_b is same size
 
     return sum(cv2.sumElems(abs_diff(image_a, image_b))) / (width * height * channels)
+
 
 @lru_cache()
 def _get_mask(_row, _col, _rows, _cols, _row_size, _col_size):
