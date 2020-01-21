@@ -64,10 +64,10 @@ class Screen(Actor):
 
             if control_actor is not None:
                 cv2.createTrackbar(
-                    'Focus',    # Trackbar name
-                    self.name,  # Window name
+                    'Focus',                            # Trackbar name
+                    self.name,                          # Window name
                     int(control_actor.get_focus()),     # Start value
-                    256,        # Range
+                    256,                                # Range
                     lambda value: control_actor.set_focus(focus=value, no_wait=True)    # On focus changed
                 )
 

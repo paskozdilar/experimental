@@ -70,10 +70,10 @@ class RawCapture(Actor):
             if success:
                 self.config.device = config.device
                 self.frame = cv2.UMat(self.get_frame())
-                self.logger.debug(f'Opening camera {config.device} [{self.capture.getBackendName()}] success')
+                self.logger.info(f'Opening device {config.device} [{self.capture.getBackendName()}] success')
             else:
                 self.config.device = None
-                self.logger.debug(f'Opening camera {config.device} failure')
+                self.logger.error(f'Opening device {config.device} failure')
                 return False
 
         # Fourcc
@@ -104,6 +104,7 @@ class RawCapture(Actor):
                 # If value is unset, read it from device
                 value = self.capture.get(cv2_attribute)
                 setattr(self.config, key, value)
+                self.logger.debug(f'Loading value {key} from device: {value}')
                 continue
 
             success = self.capture.set(cv2_attribute, value)
@@ -133,4 +134,5 @@ class RawCapture(Actor):
         return self.frame
 
     def on_exit(self):
+        self.logger.info(f'Releasing device {self.config.device}...')
         self.capture.release()
