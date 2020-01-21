@@ -37,11 +37,11 @@ class FrameMuxer(Actor):
     def stop(self):
         self.started = False
 
-    def ping(self, actor: RawCapture):
+    def ping(self, capture_actor: RawCapture):
         if not self.started:
             return
 
-        frame = actor.get_frame()
+        frame = capture_actor.get_frame()
         timestamp = datetime.datetime.now()
 
         if frame is None:
@@ -53,13 +53,12 @@ class FrameMuxer(Actor):
         self.timestamp = timestamp
 
         if self.colorspace is None:
-            self.colorspace = getattr(cv2, f'COLOR_YUV2BGR_{actor.config.fourcc.upper()}')
+            self.colorspace = getattr(cv2, f'COLOR_YUV2BGR_{capture_actor.config.fourcc.upper()}')
 
-        # noinspection PyCallByClass
-        Actor.ProxyMethod(
-            actor=self,
-            method='ping',
-        )(actor=actor, no_wait=True)
+        self.enqueue(method='ping', kwargs={
+            'actor': capture_actor,
+            'no_wait': True,
+        })
 
     def get_frame(self) -> Union[None, Frame]:
         """
