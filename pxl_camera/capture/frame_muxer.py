@@ -7,6 +7,7 @@
     Otherwise returns a Frame object containing the frame
     in RGB format and timestamp of the captured frame.
 
+    TODO: Make sure errors are well-defined + add exceptions?
 """
 
 import datetime
@@ -32,7 +33,7 @@ class FrameMuxer(Actor):
         self.started = None
 
         if capture_actor is not None:
-            self.start(capture_actor, no_wait=True)
+            self.start(capture_actor)
 
     def __call__(self, capture_actor: RawCapture):
         if not isinstance(capture_actor, RawCapture):
