@@ -72,9 +72,7 @@ class FrameMuxer(Actor):
         # Frame is valid
         self.frame = frame
         self.timestamp = timestamp
-
-        if self.colorspace is None:
-            self.colorspace = getattr(cv2, f'COLOR_YUV2BGR_{capture_actor.config.fourcc.upper()}')
+        self.colorspace = getattr(cv2, f'COLOR_YUV2BGR_{capture_actor.config.fourcc.upper()}')
 
         self.enqueue(method='ping', kwargs={'capture_actor': capture_actor})
 
@@ -82,6 +80,9 @@ class FrameMuxer(Actor):
         """
             Returns None or a Frame object containing the last frame with timestamp.
         """
+        if not self.started:
+            raise RuntimeError(f'Frame Muxer not started')
+
         if self.frame is None:
             return None
 
