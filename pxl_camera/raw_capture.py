@@ -31,7 +31,7 @@ class RawCapture(Actor):
         def decode_fourcc(fourcc):
             return "".join([chr((int(fourcc) >> 8 * i) & 0xFF) for i in range(4)]) if fourcc is not None else None
 
-    def __init__(self):
+    def __init__(self, config: Config = None):
         super().__init__()
 
         self._convert_code = None
@@ -40,6 +40,9 @@ class RawCapture(Actor):
         self.config = RawCapture.Config()
         self.capture = cv2.VideoCapture()
         self.frame = None
+
+        if config is not None:
+            self.set_config(config, no_wait=True)
 
     def __call__(self, config: Config):
         if not isinstance(config, RawCapture.Config):

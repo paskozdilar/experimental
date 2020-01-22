@@ -45,7 +45,7 @@ class Screen(Actor):
     def empty_image(width, height):
         return numpy.zeros((int(height), int(width), 3), numpy.uint8)
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, control_actor: RawCapture = None):
         super(Screen, self).__init__()
 
         if name is None:
@@ -61,6 +61,9 @@ class Screen(Actor):
         self.status = 'OK'
         self.status_color = (255, 0, 0)
         self.last_update = 0
+
+        if control_actor is not None:
+            self.start(control_actor, no_wait=True)
 
     def __call__(self, control_actor: RawCapture):
         if not isinstance(control_actor, RawCapture):

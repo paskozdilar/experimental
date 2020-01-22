@@ -104,7 +104,7 @@ class Processor(Actor):
 
             processor.set_state(state, _requeue_worker=True)
 
-    def __init__(self):
+    def __init__(self, muxer_actor: FrameMuxer = None):
         super(Processor, self).__init__()
 
         self.frame = None
@@ -117,6 +117,9 @@ class Processor(Actor):
 
         self._muxer = None
         self._worker = Processor._Worker()
+
+        if muxer_actor is not None:
+            self.start(muxer_actor, no_wait=True)
 
     def __call__(self, muxer_actor: FrameMuxer):
         if not isinstance(muxer_actor, FrameMuxer):

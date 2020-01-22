@@ -24,24 +24,11 @@ conf = RawCapture.Config(
     autofocus=False
 )
 
-print('Starting RawCapture...')
-capture = RawCapture()
-
-print('Starting FrameMuxer...')
-muxer = FrameMuxer()
-
-print('Starting Processor...')
-processor = Processor()
-
-print('Starting Screen...')
-screen = Screen()
-
-
 try:
-    with capture(config=conf) as capture, \
-            muxer(capture_actor=capture) as muxer, \
-            processor(muxer_actor=muxer) as processor, \
-            screen(control_actor=capture) as screen:
+    with RawCapture(config=conf) as capture, \
+            FrameMuxer(capture_actor=capture) as muxer, \
+            Processor(muxer_actor=muxer) as processor, \
+            Screen(control_actor=capture) as screen:
 
         base_frame = muxer.get_frame()
         roi = (0.0, 0.0, 1.0, 1.0)

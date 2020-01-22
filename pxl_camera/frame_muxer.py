@@ -23,13 +23,16 @@ from pxl_camera.util import image_processing
 
 class FrameMuxer(Actor):
 
-    def __init__(self):
+    def __init__(self, capture_actor: RawCapture = None):
         super(FrameMuxer, self).__init__()
 
         self.frame = None
         self.colorspace = None
         self.timestamp = None
         self.started = None
+
+        if capture_actor is not None:
+            self.start(capture_actor, no_wait=True)
 
     def __call__(self, capture_actor: RawCapture):
         if not isinstance(capture_actor, RawCapture):
