@@ -36,24 +36,39 @@ class Processor(Actor):
             """
                 Returns True if frame_a and frame_b are to be considered equal.
             """
+            # TODO: Create two workers, one for absdiff and one for grid?
+
             GRID_ROWS = 10
             GRID_COLS = 5
             CELL_THRESHOLD = 10.
 
+            ABS_THRESHOLD = 1
             GRID_THRESHOLD = 1
 
-            diff = image_processing.grid_diff_factor(
-                image_a=frame_a, image_b=frame_b,
-                rows=GRID_ROWS, cols=GRID_COLS,
-                threshold=CELL_THRESHOLD,
-                roi=roi,
-            )
+            # First round - fast processing
+            abs_diff = image_processing.abs_diff(image_a=frame_a, image_b=frame_b, roi=roi)
+            abs_diff = cv2.threshold(src=abs_diff, thresh=40, maxval=255, type=cv2.THRESH_BINARY)[1]
 
-            self.logger.debug(f'Diff: {diff}, Threshold: 1')
+            abs_diff_factor = image_processing.abs_diff_factor(abs_diff)
 
-            # diff = cv2.threshold(diff, thresh=40, maxval=255, type=cv2.THRESH_BINARY)[1]
+            self.logger.debug(f'Absolute diff: {abs_diff_factor}, Threshold: {ABS_THRESHOLD}')
 
-            return diff < GRID_THRESHOLD
+            return abs_diff_factor < ABS_THRESHOLD
+
+            # if abs_diff > ABS_THRESHOLD:
+            #     return False
+            #
+            # Second round - slow processing
+            # grid_diff = image_processing.grid_diff_factor(
+            #     image_a=frame_a, image_b=frame_b,
+            #     rows=GRID_ROWS, cols=GRID_COLS,
+            #     threshold=CELL_THRESHOLD,
+            #     roi=roi,
+            # )
+            #
+            # self.logger.debug(f'Grid diff: {grid_diff}, Threshold: {GRID_THRESHOLD}')
+            #
+            # return grid_diff < GRID_THRESHOLD
 
         def process_frame(self, frame: Frame, last_frame: Frame, base_frame: Frame, processor, roi: tuple):
             if frame is None:
@@ -64,10 +79,14 @@ class Processor(Actor):
             base = None
 
             if last_frame is not None:
+                self.logger.debug(f'Searching for movement')
                 move = not self.equal(frame.frame, last_frame.frame, roi)
+                self.logger.debug(f'Movement: {move}')
 
             if not move and base_frame is not None:
+                self.logger.debug(f'Searching for base')
                 base = self.equal(frame.frame, base_frame.frame, roi)
+                self.logger.debug(f'Base: {base}')
 
             # Evaluation
             if move:

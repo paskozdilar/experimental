@@ -7,10 +7,17 @@ import cv2
 import numpy
 
 
-def image_size(image: cv2.UMat):
-    height = len(image.get())
-    width = len(image.get()[0])
-    channels = len(image.get()[0][0])
+def image_size(image):
+    if isinstance(image, cv2.UMat):
+        height = len(image.get())
+        width = len(image.get()[0])
+        channels = len(image.get()[0][0])
+    elif isinstance(image, numpy.ndarray):
+        height = len(image)
+        width = len(image[0])
+        channels = len(image[0][0])
+    else:
+        raise TypeError(f'Unknown image type: {type(image)}')
 
     return width, height, channels
 
@@ -21,7 +28,7 @@ def crop(image: cv2.UMat, roi: tuple):
         (x1, y1, x2, y2 are real numbers between 0 and 1).
     :param image: cv2.UMat object containing RGB frame.
     :param roi: tuple containing coordinates (x1, y1, x2, y2) where x1,y1 is
-                the upper-left corner and x2,y2 is bottom-right corner
+                the upper-left corner and x2,y2 is bottom-right corner (opt.)
     :return: cv.UMat object of the cropped image
     """
     width, height, _ = image_size(image)
@@ -44,24 +51,30 @@ def sharpness(image: cv2.UMat):
     return cv2.Laplacian(image, cv2.CV_64FC3).get().var()
 
 
-def abs_diff(image_a: cv2.UMat, image_b: cv2.UMat):
+def abs_diff(image_a: cv2.UMat, image_b: cv2.UMat, roi: tuple = None):
     """
         Calculates absolute difference between two RGB frames.
     :param image_a: Image A.
     :param image_b: Image B.
+    :param roi: tuple containing coordinates (x1, y1, x2, y2) where x1,y1 is
+                the upper-left corner and x2,y2 is bottom-right corner (opt.)
     :return: Per-channel absolute difference between A and B.
     """
+
+    if roi:
+        image_a = crop(image_a, roi)
+        image_b = crop(image_b, roi)
 
     return cv2.absdiff(image_a, image_b)
 
 
-def abs_diff_factor(image_a: cv2.UMat, image_b: cv2.UMat):
+def abs_diff_factor(image_diff: cv2.UMat):
     """
-        Same as abs_diff, but returns a single integer denoting the "diff" factor.
+        Takes input from abs_diff and returns a single integer denoting the "diff" factor.
     """
-    width, height, channels = image_size(image_a)  # assume image_b is same size
+    width, height, channels = image_size(image_diff)
 
-    return sum(cv2.sumElems(abs_diff(image_a, image_b))) / (width * height * channels)
+    return sum(cv2.sumElems(image_diff)) / (width * height * channels)
 
 
 @lru_cache()
@@ -83,6 +96,7 @@ def grid_diff(image_a: cv2.UMat, image_b: cv2.UMat, rows: int, cols: int, roi: t
         divided into rows x cols grid.
     """
 
+    # TODO: avoid cropping
     if roi is not None:
         image_a = crop(image_a, roi)
         image_b = crop(image_b, roi)
@@ -105,12 +119,13 @@ def grid_diff(image_a: cv2.UMat, image_b: cv2.UMat, rows: int, cols: int, roi: t
     return grid
 
 
-def grid_diff_factor(image_a: cv2.UMat, image_b: cv2.UMat, rows: int, cols: int, threshold: float, roi: tuple = None):
+def grid_diff_factor(grid, threshold: float):
     """
-        Returns the percentage of cells in diff grid that are higher than threshold.
+        Takes input from grid_diff (integer matrix that contains cell_diffs)
+        and returns the percentage of cells in diff grid that are higher than
+        threshold.
 
         Return value is a real number between 0 and 1.
     """
-    grid = grid_diff(image_a, image_b, rows, cols, roi)
 
     return sum(map(lambda s: print(s[0]) or 1 if s[0] > threshold else 0, reduce(lambda x, y: x + y, grid)))

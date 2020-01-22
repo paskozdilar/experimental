@@ -43,10 +43,20 @@ try:
             processor(muxer_actor=muxer) as processor, \
             screen(control_actor=capture) as screen:
 
+        base_frame = muxer.get_frame()
+        roi = (0.0, 0.0, 1.0, 1.0)
+        processor.set_roi(roi)
+
+        processor.set_base_frame(base_frame)
+
         while True:
             frame = muxer.get_frame()
-
             state = processor.get_state()
+
+            new_roi = screen.get_roi()
+            if new_roi != roi:
+                roi = new_roi
+                processor.set_roi(roi)
 
             if state == Processor.State.GOOD or state == Processor.State.NO_BASE:
                 screen.set_status('GOOD', color='green')

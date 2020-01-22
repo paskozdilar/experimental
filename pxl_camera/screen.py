@@ -56,6 +56,7 @@ class Screen(Actor):
         self.image = Screen.empty_image(640, 480)
         self.name = name
         self.roi = Rectangle()
+        self.new_roi = Rectangle()
         self.pressed_down = False
         self.status = 'OK'
         self.status_color = (255, 0, 0)
@@ -100,21 +101,35 @@ class Screen(Actor):
         Screen._screen_names.remove(self.name)
 
     def update_roi(self, event, x, y, flags, param):
+        """
+            Called by OpenCV mouse callback.
+        """
+        width, height, _ = image_size(self.image)
+        print(f'x={x}, y={y}, width={width}, height={height}')
+
+        x /= width
+        y /= height
+
         if event == cv2.EVENT_LBUTTONDOWN:
             self.logger.debug(f'Mouse event: {event} [LBUTTONDOWN]')
             self.pressed_down = True
-            self.roi.set_start(x, y)
+            self.new_roi.set_start(x, y)
         elif event == cv2.EVENT_LBUTTONUP:
             self.logger.debug(f'Mouse event: {event} [LBUTTONUP]')
             self.pressed_down = False
-            self.roi.set_end(x, y)
+            self.new_roi.set_end(x, y)
+            self.roi = self.new_roi
         elif event == cv2.EVENT_MOUSEMOVE and self.pressed_down:
             self.logger.debug(f'Mouse event: {event} [MOUSEMOVE]')
-            self.roi.set_end(x, y)
+            self.new_roi.set_end(x, y)
         elif event == cv2.EVENT_RBUTTONDOWN:
             self.logger.debug(f'Mouse event: {event} [RBUTTONDOWN]')
             self.pressed_down = False
             self.roi = Rectangle()
+
+    def set_roi(self, roi: tuple):
+        self.roi.set_start(roi[0], roi[1])
+        self.roi.set_end(roi[2], roi[3])
 
     def get_roi(self):
         """
@@ -147,18 +162,16 @@ class Screen(Actor):
             Assumes frame has been copied and won't be modified concurrently
             by another actor.
         """
-        x1, y1, x2, y2 = self.roi.get()
+        x1, y1, x2, y2 = self.new_roi.get()
+        width, height, _ = image_size(frame.frame)
 
         # Draw ROI
-        if (x1, y1, x2, y2) != (0., 0., 1., 1.):
-            pt1 = int(x1), int(y1)
-            pt2 = int(x2), int(y2)
+        pt1 = int(x1 * width), int(y1 * height)
+        pt2 = int(x2 * width), int(y2 * height)
 
-            frame.frame = cv2.rectangle(frame.frame, pt1, pt2, 255, 5)
+        frame.frame = cv2.rectangle(frame.frame, pt1, pt2, 255, 5)
 
         # Draw font
-        # font_height = 40
-        _, height, _ = image_size(frame.frame)
         font_height = height // 16
         thickness = height // 256
 
@@ -192,6 +205,9 @@ class Screen(Actor):
 
         # Send to screen
         cv2.imshow(self.name, frame.frame)
+
+        # Save frame
+        self.image = frame.frame
 
     def wait(self, timeout=0):
         key_num = cv2.waitKey(timeout)

@@ -1,4 +1,3 @@
-import cv2
 from pxl_actor.actor import Actor
 
 
@@ -12,14 +11,14 @@ class Rectangle(Actor):
         self.x2 = 1.
         self.y2 = 1.
 
-    def set_end(self, x, y):
+    def set_end(self, x: float, y: float):
         """
             Sets x2, y2 coordinates of a rectangle while keeping x1, y1 constant.
         """
         self.x2 = x
         self.y2 = y
 
-    def set_start(self, x, y):
+    def set_start(self, x: float, y: float):
         """
             Sets both coordinates of a rectangle to the same point
         """
