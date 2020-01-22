@@ -3,6 +3,8 @@
 
     Captures frame in raw format (usually UYVY or YUYV).
     Use frame muxer for decoding or roll your own.
+
+    TODO: Add exception on device malfunction?
 """
 
 import dataclasses
@@ -41,7 +43,8 @@ class RawCapture(Actor):
         self.frame = None
 
         if config is not None:
-            self.set_config(config, no_wait=True)
+            # We can remove the "no_wait" since super().__init__() already started the actor.
+            self.set_config(config)  # , no_wait=True)
 
     def __call__(self, config: Config):
         if not isinstance(config, RawCapture.Config):
