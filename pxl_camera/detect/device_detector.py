@@ -38,6 +38,9 @@ def _is_capture_device(filename):
     # video4linux and use it here.
     # TODO: DO THIS.
 
+    success = False
+
+    # noinspection PyBroadException
     try:
         capture = cv2.VideoCapture(filename)
         success = capture.isOpened()
