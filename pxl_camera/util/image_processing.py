@@ -52,7 +52,7 @@ def abs_diff(image_a: cv2.UMat, image_b: cv2.UMat):
     :return: Per-channel absolute difference between A and B.
     """
 
-    return cv2.threshold(cv2.absdiff(image_a, image_b), thresh=40, maxval=255, type=cv2.THRESH_BINARY)[1]
+    return cv2.absdiff(image_a, image_b)
 
 
 def abs_diff_factor(image_a: cv2.UMat, image_b: cv2.UMat):
@@ -113,4 +113,4 @@ def grid_diff_factor(image_a: cv2.UMat, image_b: cv2.UMat, rows: int, cols: int,
     """
     grid = grid_diff(image_a, image_b, rows, cols, roi)
 
-    return sum(map(lambda s: 1 if s[0] > threshold else 0, reduce(lambda x, y: x + y, grid)))
+    return sum(map(lambda s: print(s[0]) or 1 if s[0] > threshold else 0, reduce(lambda x, y: x + y, grid)))

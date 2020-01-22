@@ -31,8 +31,6 @@ class RawCapture(Actor):
         def decode_fourcc(fourcc):
             return "".join([chr((int(fourcc) >> 8 * i) & 0xFF) for i in range(4)]) if fourcc is not None else None
 
-    logger = logging.getLogger('camera')
-
     def __init__(self):
         super().__init__()
 
@@ -75,12 +73,14 @@ class RawCapture(Actor):
 
             Tries to avoid any unnecessary config changes.
         """
-        print(__import__('threading').current_thread().name, 'set config - sanity check...', flush=True)
+        self.logger.debug(f'set config - sanity check... [{config}]')
+
         if self.config.device is None and config.device is None:
             raise RuntimeError('Config device not set')
 
-        print(__import__('threading').current_thread().name, 'set config - device...', flush=True)
         # Device
+        self.logger.debug('set config - device...')
+
         if config.device != self.config.device or not self.open:
             success = self.capture.open(filename=config.device)  # , apiPreference=cv2.CAP_V4L2)  # This should be auto
             if success:
@@ -92,8 +92,9 @@ class RawCapture(Actor):
                 self.logger.error(f'Opening device {config.device} failure')
                 return False
 
-        print(__import__('threading').current_thread().name, 'set config - fourcc...', flush=True)
         # Fourcc
+        self.logger.debug('set config - fourcc...')
+
         if config.fourcc is None:
             self.config.fourcc = RawCapture.config.decode_fourcc(self.capture.get(cv2.CAP_PROP_FOURCC))
         else:
@@ -104,8 +105,9 @@ class RawCapture(Actor):
                 self.config.fourcc = RawCapture.Config.decode_fourcc(self.capture.get(cv2.CAP_PROP_FOURCC))
             self.logger.debug(f'Setting fourcc to {config.fourcc}: {"success" if success else "failure"}')
 
-        print(__import__('threading').current_thread().name, 'set config - other...', flush=True)
         # Other config
+        self.logger.debug('set config - other...')
+
         skip_keys = {'device', 'fourcc'}
 
         for key, value in dataclasses.asdict(config).items():

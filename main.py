@@ -1,5 +1,4 @@
 import logging
-import signal
 import time
 
 from pxl_camera.frame_muxer import FrameMuxer
@@ -11,11 +10,11 @@ from pxl_camera.screen import Screen
 # Fix KeyboardInterrupt handling on threading.Event.wait()
 from pxl_camera.util.key import Key
 
-signal.signal(signal.SIGINT, signal.SIG_DFL)
-
 # Set logging level
-logging.basicConfig(level=logging.DEBUG)
-
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="[%(name)s:%(filename)s:%(lineno)d] - [%(funcName)s] - %(asctime)s - %(levelname)s - %(message)s"
+)
 
 conf = RawCapture.Config(
     device='/dev/video2',
@@ -44,23 +43,19 @@ try:
             processor(muxer_actor=muxer) as processor, \
             screen(control_actor=capture) as screen:
 
-        print('ok')
-
-        index = 1
-
         while True:
             frame = muxer.get_frame()
 
             state = processor.get_state()
 
-            if state == Processor.State.GOOD:
-                screen.set_text('GOOD', color='green')
+            if state == Processor.State.GOOD or state == Processor.State.NO_BASE:
+                screen.set_status('GOOD', color='green')
             elif state == Processor.State.BASE:
-                screen.set_text('BASE', color='blue')
+                screen.set_status('BASE', color='blue')
             elif state == Processor.State.MOVE:
-                screen.set_text('MOVE', color='red')
+                screen.set_status('MOVE', color='red')
             elif state == Processor.State.NONE:
-                screen.set_text('UNKNOWN', color='gray')
+                screen.set_status('UNKNOWN', color='gray')
 
             screen.update_image(frame)
 

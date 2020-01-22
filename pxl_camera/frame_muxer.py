@@ -45,7 +45,6 @@ class FrameMuxer(Actor):
         self.stop()
 
     def start(self, capture_actor: RawCapture):
-        print('STARTED')
         self.started = True
         self.ping(capture_actor)
 
