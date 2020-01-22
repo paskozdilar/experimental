@@ -18,6 +18,7 @@ from pxl_actor.actor import Actor
 
 from pxl_camera.frame import Frame
 from pxl_camera.raw_capture import RawCapture
+from pxl_camera.util import image_processing
 
 
 class FrameMuxer(Actor):
@@ -30,12 +31,29 @@ class FrameMuxer(Actor):
         self.timestamp = None
         self.started = None
 
+    def __call__(self, capture_actor: RawCapture):
+        if not isinstance(capture_actor, RawCapture):
+            raise TypeError(f'capture_actor [{type(capture_actor)}] not instance of RawCapture')
+        else:
+            self.start(capture_actor)
+            return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
+
     def start(self, capture_actor: RawCapture):
+        print('STARTED')
         self.started = True
         self.ping(capture_actor)
 
     def stop(self):
         self.started = False
+
+    def on_exit(self):
+        self.stop()
 
     def ping(self, capture_actor: RawCapture):
         if not self.started:
@@ -55,10 +73,7 @@ class FrameMuxer(Actor):
         if self.colorspace is None:
             self.colorspace = getattr(cv2, f'COLOR_YUV2BGR_{capture_actor.config.fourcc.upper()}')
 
-        self.enqueue(method='ping', kwargs={
-            'actor': capture_actor,
-            'no_wait': True,
-        })
+        self.enqueue(method='ping', kwargs={'capture_actor': capture_actor})
 
     def get_frame(self) -> Union[None, Frame]:
         """
@@ -68,9 +83,6 @@ class FrameMuxer(Actor):
             return None
 
         rgb_frame = cv2.cvtColor(self.frame, self.colorspace)
-        np_mat = self.frame.get()
+        width, height, channels = image_processing.image_size(rgb_frame)
 
-        width = len(np_mat[0])
-        height = len(np_mat)
-
-        return Frame(width=width, height=height, frame=rgb_frame, timestamp=self.timestamp)
+        return Frame(width=width, height=height, channels=channels, frame=rgb_frame, timestamp=self.timestamp)

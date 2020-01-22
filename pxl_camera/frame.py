@@ -7,6 +7,7 @@ from typing import Any
 class Frame:
     width: int = None
     height: int = None
+    channels: int = None
     frame: Any = None
     timestamp: datetime = None
 

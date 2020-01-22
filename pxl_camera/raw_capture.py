@@ -43,6 +43,20 @@ class RawCapture(Actor):
         self.capture = cv2.VideoCapture()
         self.frame = None
 
+    def __call__(self, config: Config):
+        if not isinstance(config, RawCapture.Config):
+            raise TypeError(f'config [{type(config)}] not instance of RawCapture.Config')
+        else:
+            self.set_config(config)
+            return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.capture.release()
+        self.config = RawCapture.Config()
+
     def _convert_to_rgb(self, raw_frame):
         return cv2.cvtColor(raw_frame, self._convert_code)
 
@@ -61,12 +75,14 @@ class RawCapture(Actor):
 
             Tries to avoid any unnecessary config changes.
         """
+        print(__import__('threading').current_thread().name, 'set config - sanity check...', flush=True)
         if self.config.device is None and config.device is None:
             raise RuntimeError('Config device not set')
 
+        print(__import__('threading').current_thread().name, 'set config - device...', flush=True)
         # Device
         if config.device != self.config.device or not self.open:
-            success = self.capture.open(filename=config.device)  #, apiPreference=cv2.CAP_V4L2)  # This should be auto
+            success = self.capture.open(filename=config.device)  # , apiPreference=cv2.CAP_V4L2)  # This should be auto
             if success:
                 self.config.device = config.device
                 self.frame = cv2.UMat(self.get_frame())
@@ -76,6 +92,7 @@ class RawCapture(Actor):
                 self.logger.error(f'Opening device {config.device} failure')
                 return False
 
+        print(__import__('threading').current_thread().name, 'set config - fourcc...', flush=True)
         # Fourcc
         if config.fourcc is None:
             self.config.fourcc = RawCapture.config.decode_fourcc(self.capture.get(cv2.CAP_PROP_FOURCC))
@@ -87,6 +104,7 @@ class RawCapture(Actor):
                 self.config.fourcc = RawCapture.Config.decode_fourcc(self.capture.get(cv2.CAP_PROP_FOURCC))
             self.logger.debug(f'Setting fourcc to {config.fourcc}: {"success" if success else "failure"}')
 
+        print(__import__('threading').current_thread().name, 'set config - other...', flush=True)
         # Other config
         skip_keys = {'device', 'fourcc'}
 
@@ -123,13 +141,13 @@ class RawCapture(Actor):
             Returns None on error.
         """
         if not self.config.device:
-            return None
+            raise RuntimeError(f'Device {self.config.device} not opened')
 
         success, self.frame = self.capture.read(self.frame)
 
         if not success:
             self.capture.release()
-            return None
+            raise RuntimeError(f'Device {self.config.device} malfunctioned')
 
         return self.frame
 

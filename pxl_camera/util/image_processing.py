@@ -52,7 +52,7 @@ def abs_diff(image_a: cv2.UMat, image_b: cv2.UMat):
     :return: Per-channel absolute difference between A and B.
     """
 
-    return cv2.threshold(cv2.absdiff(image_a, image_b), thresh=50, maxval=255, type=cv2.THRESH_BINARY)[1]
+    return cv2.threshold(cv2.absdiff(image_a, image_b), thresh=40, maxval=255, type=cv2.THRESH_BINARY)[1]
 
 
 def abs_diff_factor(image_a: cv2.UMat, image_b: cv2.UMat):

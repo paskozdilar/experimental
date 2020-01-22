@@ -14,7 +14,10 @@ from pxl_camera.frame import Frame
 
 
 # TODO: Add concept + support for ROI mechanism
+from pxl_camera.raw_capture import RawCapture
 from pxl_camera.rectangle import Rectangle
+from pxl_camera.util.image_processing import image_size
+from pxl_camera.util.key import Key
 
 
 class Screen(Actor):
@@ -56,27 +59,43 @@ class Screen(Actor):
         self.text = 'OK'
         self.text_color = (256, 0, 0)
 
-    def show(self, control_actor=None):
+    def __call__(self, control_actor: RawCapture):
+        if not isinstance(control_actor, RawCapture):
+            raise TypeError(f'control_actor [{type(control_actor)}] not instance of RawCapture')
+        else:
+            self.start(control_actor)
+            return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
+
+    def start(self, control_actor: RawCapture):
         if not self.open:
-            cv2.namedWindow(self.name, cv2.WINDOW_NORMAL | cv2.WINDOW_FREERATIO | cv2.WINDOW_GUI_NORMAL)
+            cv2.namedWindow(self.name, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO | cv2.WINDOW_GUI_NORMAL)
             cv2.resizeWindow(self.name, 640, 480)
             cv2.setMouseCallback(self.name, self.update_roi)
 
-            if control_actor is not None:
-                cv2.createTrackbar(
-                    'Focus',                            # Trackbar name
-                    self.name,                          # Window name
-                    int(control_actor.get_focus()),     # Start value
-                    256,                                # Range
-                    lambda value: control_actor.set_focus(focus=value, no_wait=True)    # On focus changed
-                )
+            cv2.createTrackbar(
+                'Focus',                            # Trackbar name
+                self.name,                          # Window name
+                int(control_actor.get_focus()),     # Start value
+                256,                                # Range
+                lambda value: control_actor.set_focus(focus=value, no_wait=True)    # On focus changed
+            )
 
             self.open = True
 
-    def hide(self):
+    def stop(self):
         if self.open:
             cv2.destroyWindow(self.name)
             self.open = False
+
+    def on_exit(self):
+        self.stop()
+        Screen._screen_names.remove(self.name)
 
     def update_roi(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -115,8 +134,12 @@ class Screen(Actor):
             self.text_color = (0, 255, 0)
         elif color == 'white':
             self.text_color = (255, 255, 255)
+        elif color == 'black':
+            self.text_color = (0, 0, 0)
+        elif color == 'gray':
+            self.text_color = (127, 127, 127)
 
-    def update_image(self, frame: cv2.UMat):
+    def update_image(self, frame: Frame):
         """
             Updates screen with RGB encoded frame.
             Assumes frame has been copied and won't be modified concurrently
@@ -129,27 +152,32 @@ class Screen(Actor):
             pt1 = int(x1), int(y1)
             pt2 = int(x2), int(y2)
 
-            frame = cv2.rectangle(frame, pt1, pt2, 255, 5)
+            frame.frame = cv2.rectangle(frame.frame, pt1, pt2, 255, 5)
 
         # Draw font
-        font_height = 40
+        # font_height = 40
+        _, height, _ = image_size(frame.frame)
+        font_height = height // 16
+        thickness = height // 128
+
         font_scale = cv2.getFontScaleFromHeight(cv2.FONT_HERSHEY_DUPLEX, font_height, 2)
         cv2.putText(
-            frame,                      # image
+            frame.frame,                # image
             self.text,                  # text
-            (10, 10 + font_height),     # text
+            (10, 10 + font_height),     # origin
             cv2.FONT_HERSHEY_DUPLEX,    # font face
             font_scale,                 # font scale
             self.text_color,            # color
-            2,                          # thickness
-            cv2.LINE_AA                 # line type (opencv)
+            thickness,                          # thickness
+            cv2.FILLED                  # line type (opencv)
         )
 
-        cv2.imshow(self.name, frame)
+        cv2.imshow(self.name, frame.frame)
 
     def wait(self, timeout=0):
-        return cv2.waitKey(timeout)
+        key_num = cv2.waitKey(timeout)
 
-    def on_exit(self):
-        self.hide()
-        Screen._screen_names.remove(self.name)
+        if key_num not in set(map(int, Key)):
+            return Key.UNKNOWN
+
+        return Key(key_num)
