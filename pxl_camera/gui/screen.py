@@ -1,6 +1,11 @@
 """
     Reference UI implementation for live-streaming frames, setting focus
     and general camera debugging.
+
+    TODO: Add base image resetting GUI method
+
+    MAYBE: Refactor - remove controlling logic from the UI and just use it as
+           an interface to some internal mechanism?
 """
 
 import enum
@@ -11,14 +16,11 @@ import numpy
 
 from pxl_actor.actor import Actor
 
-from pxl_camera.util.frame import Frame
-
-
-# TODO: Add concept + support for ROI mechanism
 from pxl_camera.capture.raw_capture import RawCapture
-from pxl_camera.util.rectangle import Rectangle
+from pxl_camera.util.frame import Frame
 from pxl_camera.util.image_processing import image_size
 from pxl_camera.util.key import Key
+from pxl_camera.util.rectangle import Rectangle
 
 
 class Screen(Actor):
