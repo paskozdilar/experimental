@@ -57,9 +57,11 @@ class Screen(Actor):
         self.open = False
         self.image = Screen.empty_image(640, 480)
         self.name = name
+
         self.roi = Rectangle()
         self.new_roi = Rectangle()
         self.pressed_down = False
+
         self.status = 'OK'
         self.status_color = (255, 0, 0)
         self.last_update = 0
@@ -131,6 +133,7 @@ class Screen(Actor):
             self.logger.debug(f'Mouse event: {event} [RBUTTONDOWN]')
             self.pressed_down = False
             self.roi = Rectangle()
+            self.new_roi = Rectangle()
 
     def set_roi(self, roi: tuple):
         self.roi.set_start(roi[0], roi[1])

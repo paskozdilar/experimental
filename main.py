@@ -11,7 +11,7 @@ from pxl_camera.util.key import Key
 
 # Set logging level
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="[%(name)s:%(filename)s:%(lineno)d] - [%(funcName)s] - %(asctime)s - %(levelname)s - %(message)s"
 )
 
@@ -58,7 +58,7 @@ try:
             screen.update_image(frame)
 
             key = screen.wait(10)
-            logging.debug(state, key)
+            logging.debug(f'state: {state}, key: {key}')
 
             if key == Key.ENTER or key == Key.ESC:
                 break
