@@ -16,8 +16,8 @@ import cv2
 
 from pxl_actor.actor import Actor
 
-from pxl_camera.frame import Frame
-from pxl_camera.raw_capture import RawCapture
+from pxl_camera.util.frame import Frame
+from pxl_camera.capture.raw_capture import RawCapture
 from pxl_camera.util import image_processing
 
 

@@ -1,3 +1,7 @@
+"""
+    Class for detecting
+"""
+
 import cv2
 import pyudev
 
@@ -6,7 +10,7 @@ from pxl_actor.actor import Actor
 
 def _get_device_attribute(device: pyudev.Device, attribute: str):
     """
-        Finds first available attribute by traversing the udev device tree
+        Finds first available attribute by traversing the udev capture tree
     """
 
     if attribute in device.attributes.available_attributes:
@@ -20,6 +24,16 @@ def _get_device_attribute(device: pyudev.Device, attribute: str):
 
 
 def _is_capture_device(filename):
+    # *** WARNING ***
+    #
+    # It is hard to get video capabilites in Python. It's more of a C thing.
+    #
+    # Opening an already open video4linux device with VideoCapture results
+    # in error, so this method doesn't work on already opened devices.
+    #
+    # The solution would be to write a C function that interfaces with
+    # video4linux and use it here.
+    # TODO: DO THIS.
 
     capture = cv2.VideoCapture(filename)
     success = capture.isOpened()
@@ -28,7 +42,7 @@ def _is_capture_device(filename):
     return success
 
 
-class Detect(Actor):
+class DeviceDetector(Actor):
 
     _udev_context = pyudev.Context()
     _supported_cameras = {
@@ -38,40 +52,45 @@ class Detect(Actor):
 
     def __init__(self, actor=None, method=None):
         """
-        :param actor: Actor that will receive non-blocking method call on device event.
+        :param actor: Actor that will receive non-blocking method call on capture event.
         :param method: Method that will receive the event call.
         """
-        super(Detect, self).__init__()
+        super(DeviceDetector, self).__init__()
 
         if actor is not None:
             self.actor = actor
             self.method = method
+
+            # We use {source='kernel'} for udev events here because for some
+            # reason udev won't forward events inside docker containers.
+            # TODO: Investigate this.
 
             self.monitor = pyudev.Monitor.from_netlink(self._udev_context, source='kernel')
             self.monitor.filter_by(subsystem="video4linux")
 
             self.observer = pyudev.MonitorObserver(
                 monitor=self.monitor,
-                callback=self.callback,
+                callback=self.event_handler,
             )
             self.observer.start()
 
-    def callback(self, device):
+    def event_handler(self, device):
         """
             MonitorObserver callback for handling device events.
 
             Calls the method of the actor (passed through the constructor) with two arguments:
-              - device: '/dev/path' of the device
-              - action:
+              - capture: '/dev/path' of the capture
+              - action: 'add' and 'remove' are relevant ones. Others can be ignored.
         """
-        Actor.ProxyMethod(
-            actor=self.actor,
-            method=self.method,
-        )(device=device.device_node, action=device.action, no_wait=True)
+        if self.actor is not None:
+            Actor.ProxyMethod(
+                actor=self.actor,
+                method=self.method,
+            )(device=device.device_node, action=device.action, no_wait=True)
 
     def get_devices(self):
         """
-            Returns mapping serial-to-device-node for supported devices.
+            Returns mapping serial-to-capture-node for supported devices.
         """
 
         devices = {}

@@ -128,4 +128,4 @@ def grid_diff_factor(grid, threshold: float):
         Return value is a real number between 0 and 1.
     """
 
-    return sum(map(lambda s: print(s[0]) or 1 if s[0] > threshold else 0, reduce(lambda x, y: x + y, grid)))
+    return sum(map(lambda s: 1 if s[0] > threshold else 0, reduce(lambda x, y: x + y, grid)))

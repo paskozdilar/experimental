@@ -11,12 +11,12 @@ import numpy
 
 from pxl_actor.actor import Actor
 
-from pxl_camera.frame import Frame
+from pxl_camera.util.frame import Frame
 
 
 # TODO: Add concept + support for ROI mechanism
-from pxl_camera.raw_capture import RawCapture
-from pxl_camera.rectangle import Rectangle
+from pxl_camera.capture.raw_capture import RawCapture
+from pxl_camera.util.rectangle import Rectangle
 from pxl_camera.util.image_processing import image_size
 from pxl_camera.util.key import Key
 
@@ -108,7 +108,6 @@ class Screen(Actor):
             Called by OpenCV mouse callback.
         """
         width, height, _ = image_size(self.image)
-        print(f'x={x}, y={y}, width={width}, height={height}')
 
         x /= width
         y /= height
@@ -122,6 +121,7 @@ class Screen(Actor):
             self.pressed_down = False
             self.new_roi.set_end(x, y)
             self.roi = self.new_roi
+            self.logger.info(f'Set new ROI: {self.roi.get()}')
         elif event == cv2.EVENT_MOUSEMOVE and self.pressed_down:
             self.logger.debug(f'Mouse event: {event} [MOUSEMOVE]')
             self.new_roi.set_end(x, y)
@@ -142,6 +142,9 @@ class Screen(Actor):
         return self.roi.get()
 
     def set_status(self, status, color=None):
+        if self.status != status:
+            self.logger.info(f'Status update: {status}')
+
         self.status = status
 
         if color is None:
@@ -167,17 +170,16 @@ class Screen(Actor):
         """
         x1, y1, x2, y2 = self.new_roi.get()
         width, height, _ = image_size(frame.frame)
+        font_height = height // 16
+        thickness = height // 256
 
         # Draw ROI
         pt1 = int(x1 * width), int(y1 * height)
         pt2 = int(x2 * width), int(y2 * height)
 
-        frame.frame = cv2.rectangle(frame.frame, pt1, pt2, 255, 5)
+        frame.frame = cv2.rectangle(frame.frame, pt1, pt2, 255, thickness)
 
         # Draw font
-        font_height = height // 16
-        thickness = height // 256
-
         font_scale = cv2.getFontScaleFromHeight(cv2.FONT_HERSHEY_DUPLEX, font_height, 2)
         cv2.putText(
             frame.frame,                # image

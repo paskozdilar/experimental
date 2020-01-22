@@ -3,13 +3,12 @@
     are good for further processing by models and stuff.
 """
 import enum
-import time
 
 import cv2
 from pxl_actor.actor import Actor
 
-from pxl_camera.frame import Frame
-from pxl_camera.frame_muxer import FrameMuxer
+from pxl_camera.util.frame import Frame
+from pxl_camera.capture.frame_muxer import FrameMuxer
 from pxl_camera.util import image_processing
 
 
@@ -38,12 +37,12 @@ class Processor(Actor):
             """
             # TODO: Create two workers, one for absdiff and one for grid?
 
-            GRID_ROWS = 10
-            GRID_COLS = 5
-            CELL_THRESHOLD = 10.
+            # GRID_ROWS = 10
+            # GRID_COLS = 5
+            # CELL_THRESHOLD = 10.
 
             ABS_THRESHOLD = 1
-            GRID_THRESHOLD = 1
+            # GRID_THRESHOLD = 1
 
             # First round - fast processing
             abs_diff = image_processing.abs_diff(image_a=frame_a, image_b=frame_b, roi=roi)

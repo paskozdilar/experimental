@@ -1,18 +1,17 @@
 import logging
-import time
 
-from pxl_camera.frame_muxer import FrameMuxer
-from pxl_camera.processor import Processor
-from pxl_camera.raw_capture import RawCapture
+from pxl_camera.capture.frame_muxer import FrameMuxer
+from pxl_camera.filter.processor import Processor
+from pxl_camera.capture.raw_capture import RawCapture
 
-from pxl_camera.screen import Screen
+from pxl_camera.gui.screen import Screen
 
 # Fix KeyboardInterrupt handling on threading.Event.wait()
 from pxl_camera.util.key import Key
 
 # Set logging level
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="[%(name)s:%(filename)s:%(lineno)d] - [%(funcName)s] - %(asctime)s - %(levelname)s - %(message)s"
 )
 
@@ -23,6 +22,8 @@ conf = RawCapture.Config(
     frame_height=2160,
     autofocus=False
 )
+
+logging.info('Starting...')
 
 try:
     with RawCapture(config=conf) as capture, \
@@ -57,10 +58,10 @@ try:
             screen.update_image(frame)
 
             key = screen.wait(10)
-            print(state, key)
+            logging.debug(state, key)
 
             if key == Key.ENTER or key == Key.ESC:
                 break
 
 except Exception as exc:
-    print('Exception:', exc)
+    logging.error('Exception:', exc)

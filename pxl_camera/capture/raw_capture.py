@@ -6,7 +6,6 @@
 """
 
 import dataclasses
-import logging
 
 import cv2
 
@@ -72,27 +71,27 @@ class RawCapture(Actor):
 
     def set_config(self, config: Config):
         """
-            Opens device and sets config. Returns False on device open failure.
+            Opens capture and sets config. Returns False on capture open failure.
 
             Tries to avoid any unnecessary config changes.
         """
         self.logger.debug(f'set config - sanity check... [{config}]')
 
         if self.config.device is None and config.device is None:
-            raise RuntimeError('Config device not set')
+            raise RuntimeError('Config capture not set')
 
         # Device
-        self.logger.debug('set config - device...')
+        self.logger.debug('set config - capture...')
 
         if config.device != self.config.device or not self.open:
             success = self.capture.open(filename=config.device)  # , apiPreference=cv2.CAP_V4L2)  # This should be auto
             if success:
                 self.config.device = config.device
                 self.frame = cv2.UMat(self.get_frame())
-                self.logger.info(f'Opening device {config.device} [{self.capture.getBackendName()}] success')
+                self.logger.info(f'Opening capture {config.device} [{self.capture.getBackendName()}] success')
             else:
                 self.config.device = None
-                self.logger.error(f'Opening device {config.device} failure')
+                self.logger.error(f'Opening capture {config.device} failure')
                 return False
 
         # Fourcc
@@ -111,7 +110,7 @@ class RawCapture(Actor):
         # Other config
         self.logger.debug('set config - other...')
 
-        skip_keys = {'device', 'fourcc'}
+        skip_keys = {'capture', 'fourcc'}
 
         for key, value in dataclasses.asdict(config).items():
             if key in skip_keys:
@@ -120,14 +119,14 @@ class RawCapture(Actor):
             cv2_attribute = getattr(cv2, f'CAP_PROP_{key.upper()}', None)
 
             if cv2_attribute is None:
-                self.logger.debug(f'Invalid attribute [{key}] for device [{self.config.device}]')
+                self.logger.debug(f'Invalid attribute [{key}] for capture [{self.config.device}]')
                 continue
 
             if value is None:
-                # If value is unset, read it from device
+                # If value is unset, read it from capture
                 value = self.capture.get(cv2_attribute)
                 setattr(self.config, key, value)
-                self.logger.debug(f'Loading value {key} from device: {value}')
+                self.logger.debug(f'Loading value {key} from capture: {value}')
                 continue
 
             success = self.capture.set(cv2_attribute, value)
@@ -138,11 +137,13 @@ class RawCapture(Actor):
 
             self.logger.debug(f'Setting {key} to {value}: {"success" if success else "failure"}')
 
+        self.logger.info(f'Successfully opened capture {self.config.device} and set config {config}')
+
         return True
 
     def get_frame(self):
         """
-            Retrieves and returns the next frame from device, if available.
+            Retrieves and returns the next frame from capture, if available.
             Returns None on error.
         """
         if not self.config.device:
@@ -157,5 +158,5 @@ class RawCapture(Actor):
         return self.frame
 
     def on_exit(self):
-        self.logger.info(f'Releasing device {self.config.device}...')
+        self.logger.info(f'Releasing capture {self.config.device}...')
         self.capture.release()
