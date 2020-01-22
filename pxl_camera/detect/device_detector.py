@@ -26,18 +26,24 @@ def _get_device_attribute(device: pyudev.Device, attribute: str):
 def _is_capture_device(filename):
     # *** WARNING ***
     #
-    # It is hard to get video capabilites in Python. It's more of a C thing.
+    # It is somewhat hard to get video capabilites in OpenCV. It is just too
+    # high-level to know that kind of stuff, which is the role of video4linux.
     #
     # Opening an already open video4linux device with VideoCapture results
     # in error, so this method doesn't work on already opened devices.
+    # Make sure ALL other VideoCapture instances are .release()-d before
+    # using this method, directly or indirectly.
     #
     # The solution would be to write a C function that interfaces with
     # video4linux and use it here.
     # TODO: DO THIS.
 
-    capture = cv2.VideoCapture(filename)
-    success = capture.isOpened()
-    capture.release()
+    try:
+        capture = cv2.VideoCapture(filename)
+        success = capture.isOpened()
+        capture.release()
+    except Exception as exc:
+        pass
 
     return success
 
