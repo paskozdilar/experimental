@@ -194,7 +194,7 @@ class Screen(Actor):
         cv2.putText(
             image,      # image
             text,       # text
-            (10, 1.2*row*font_height),  # origin
+            (10, int(1.5*row*font_height)),  # origin
             cv2.FONT_HERSHEY_DUPLEX,  # font face
             font_scale,  # font scale
             (0, 0, 0),  # color
@@ -205,7 +205,7 @@ class Screen(Actor):
         cv2.putText(
             image,  # image
             text,  # text
-            (10, 10 + font_height),  # origin
+            (10, int(1.5*row*font_height)),  # origin
             cv2.FONT_HERSHEY_DUPLEX,  # font face
             font_scale,  # font scale
             color,  # color
@@ -221,10 +221,24 @@ class Screen(Actor):
         """
         x1, y1, x2, y2 = self.new_roi.get()
         width, height, _ = image_size(frame.frame)
+
         font_height = height // 32
         thickness = height // 512
         font_scale = cv2.getFontScaleFromHeight(cv2.FONT_HERSHEY_DUPLEX, font_height, 2)
 
+        def row():
+            _row = 1
+            while True:
+                yield _row
+                _row += 1
+
+        row = row()
+
+        current_time = time.time()
+        last_time = self.last_update
+        self.last_update = current_time
+
+        #
         # Draw ROI
         pt1 = int(x1 * width), int(y1 * height)
         pt2 = int(x2 * width), int(y2 * height)
@@ -236,105 +250,73 @@ class Screen(Actor):
             image=self.image,
             text=f'STATUS: {self.status}',
             font_height=font_height,
-            row=1,
+            row=row.__next__(),
             font_scale=font_scale,
             color=self.status_color,
             thickness=thickness,
         )
 
         # FPS
-        current_time = time.time()
-        last_time = self.last_update
-        self.last_update = current_time
-
-        cv2.putText(
-            self.image,  # image
-            f'FPS: {1 / (current_time - last_time):.1f}',  # text
-            (10, 10 + int(2.3 * font_height)),  # origin
-            cv2.FONT_HERSHEY_DUPLEX,  # font face
-            font_scale,  # font scale
-            (0, 0, 0),  # color
-            thickness + 5,  # thickness
-            cv2.FILLED  # line type (open cv)
-        )
-
-        cv2.putText(
-            self.image,   # image
-            f'FPS: {1 / (current_time - last_time):.1f}',  # text
-            (10, 10 + int(2.3*font_height)),  # origin
-            cv2.FONT_HERSHEY_DUPLEX,  # font face
-            font_scale,  # font scale
-            self.status_color,  # color
-            thickness,  # thickness
-            cv2.FILLED  # line type (open cv)
+        self._put_text_outline(
+            image=self.image,
+            text=f'FPS: {1 / (current_time - last_time):.1f}',
+            font_height=font_height,
+            row=row.__next__(),
+            font_scale=font_scale,
+            color=self.status_color,
+            thickness=thickness,
         )
 
         # Image counter
-        cv2.putText(
-            self.image,  # image
-            f'IMAGES CAPTURED: {self.index}',  # text
-            (10, 10 + int(3.6 * font_height)),  # origin
-            cv2.FONT_HERSHEY_DUPLEX,  # font face
-            font_scale,  # font scale
-            (0, 0, 0),  # color
-            thickness + 5,  # thickness
-            cv2.FILLED  # line type (open cv)
-        )
-
-        cv2.putText(
-            self.image,  # image
-            f'IMAGES CAPTURED: {self.index}',  # text
-            (10, 10 + int(3.6 * font_height)),  # origin
-            cv2.FONT_HERSHEY_DUPLEX,  # font face
-            font_scale,  # font scale
-            self.status_color,  # color
-            thickness,  # thickness
-            cv2.FILLED  # line type (open cv)
+        self._put_text_outline(
+            image=self.image,
+            text=f'IMAGES CAPTURED: {self.index}',
+            font_height=font_height,
+            row=row.__next__(),
+            font_scale=font_scale,
+            color=self.status_color,
+            thickness=thickness,
         )
 
         # Instructions
-        cv2.putText(
-            self.image,  # image
-            f'[ENTER - {"stop" if self.running else "start"} capturing]',  # text
-            (10, 10 + int(4.9 * font_height)),  # origin
-            cv2.FONT_HERSHEY_DUPLEX,  # font face
-            font_scale,  # font scale
-            self.status_color,  # color
-            thickness,  # thickness
-            cv2.FILLED  # line type (open cv)
+        self._put_text_outline(
+            image=self.image,
+            text=f'[ENTER - {"stop" if self.running else "start"} capturing]',
+            font_height=font_height,
+            row=row.__next__(),
+            font_scale=font_scale,
+            color=self.status_color,
+            thickness=thickness,
         )
 
-        cv2.putText(
-            self.image,  # image
-            f'[ESC - exit]',  # text
-            (10, 10 + int(6.2 * font_height)),  # origin
-            cv2.FONT_HERSHEY_DUPLEX,  # font face
-            font_scale,  # font scale
-            self.status_color,  # color
-            thickness,  # thickness
-            cv2.FILLED  # line type (open cv)
+        self._put_text_outline(
+            image=self.image,
+            text=f'[ESC - exit]',
+            font_height=font_height,
+            row=row.__next__(),
+            font_scale=font_scale,
+            color=self.status_color,
+            thickness=thickness,
         )
 
-        cv2.putText(
-            self.image,  # image
-            f'[LEFT MOUSE - draw ROI]',  # text
-            (10, 10 + int(7.5 * font_height)),  # origin
-            cv2.FONT_HERSHEY_DUPLEX,  # font face
-            font_scale,  # font scale
-            self.status_color,  # color
-            thickness,  # thickness
-            cv2.FILLED  # line type (open cv)
+        self._put_text_outline(
+            image=self.image,
+            text=f'[LEFT MOUSE - draw ROI]',
+            font_height=font_height,
+            row=row.__next__(),
+            font_scale=font_scale,
+            color=self.status_color,
+            thickness=thickness,
         )
 
-        cv2.putText(
-            self.image,  # image
-            f'[RIGHT MOUSE - reset base image]',  # text
-            (10, 10 + int(8.8 * font_height)),  # origin
-            cv2.FONT_HERSHEY_DUPLEX,  # font face
-            font_scale,  # font scale
-            self.status_color,  # color
-            thickness,  # thickness
-            cv2.FILLED  # line type (open cv)
+        self._put_text_outline(
+            image=self.image,
+            text=f'[RIGHT MOUSE - reset base image]',
+            font_height=font_height,
+            row=row.__next__(),
+            font_scale=font_scale,
+            color=self.status_color,
+            thickness=thickness,
         )
 
         # Send to screen
