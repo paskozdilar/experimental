@@ -65,6 +65,7 @@ class FrameMuxer(Actor):
         frame = capture_actor.get_frame()
         timestamp = datetime.datetime.now()
 
+        # If RawCapture works by design, this should never happen:
         if frame is None:
             self.stop()
             return

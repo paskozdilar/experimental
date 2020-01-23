@@ -29,13 +29,18 @@ conf = RawCapture.Config(
     autofocus=False
 )
 
+capture = RawCapture()
+muxer = FrameMuxer()
+processor = Processor()
+screen = Screen()
+
 logging.info('Starting...')
 
 try:
-    with RawCapture(config=conf) as capture, \
-            FrameMuxer(capture_actor=capture) as muxer, \
-            Processor(muxer_actor=muxer) as processor, \
-            Screen(control_actor=capture) as screen:
+    with capture(config=conf), \
+            muxer(capture_actor=capture), \
+            processor(muxer_actor=muxer), \
+            screen(control_actor=capture):
 
         time.sleep(1)
 
