@@ -24,4 +24,8 @@ with camera(config):
     time.sleep(1)
     frame = camera.get_frame()
     print(frame.state)
+    camera.set_base_frame(None)
+    time.sleep(1)
+    frame = camera.get_frame()
+    print(frame.state)
 

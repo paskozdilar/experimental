@@ -170,7 +170,7 @@ class Screen(Actor):
 
     def set_status(self, status, color=None):
         if self.status != status:
-            self.logger.info(f'Status update: {status}')
+            self.logger.debug(f'Status update: {status}')
 
         self.status = status
 
