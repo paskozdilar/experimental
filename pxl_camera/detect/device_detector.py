@@ -62,7 +62,8 @@ class DeviceDetector(Actor):
     def __init__(self, actor=None, method=None):
         """
         :param actor: Actor that will receive non-blocking method call on capture event.
-        :param method: Method that will receive the event call.
+        :param method: Method that will receive the event call with args 'device', 'action'
+                       See DeviceDetector.event_handler().
         """
         super(DeviceDetector, self).__init__()
 
@@ -113,7 +114,7 @@ class DeviceDetector(Actor):
             MonitorObserver callback for handling device events.
 
             Calls the method of the actor (passed through the constructor) with two arguments:
-              - capture: '/dev/path' of the capture
+              - device: '/dev/path' of the capture
               - action: 'add' and 'remove' are relevant ones. Others can be ignored.
         """
         if isinstance(self.actor, Actor) and isinstance(self.method, str):
