@@ -1,22 +1,21 @@
-import base64
-import json
+"""
+    Example of a simple frame capturing application with background detection and GUI.
+
+    Outputs images into ./frames/ directory with timestamp format defined in Frame class.
+"""
+
 import logging
 import os
 import time
 
 from pxl_camera.capture.frame_muxer import FrameMuxer
-from pxl_camera.filter.processor import Processor
 from pxl_camera.capture.raw_capture import RawCapture
-
+from pxl_camera.filter.processor import Processor
 from pxl_camera.gui.screen import Screen
-
-# Fix KeyboardInterrupt handling on threading.Event.wait()
-from pxl_camera.util.image_processing import image_size
 from pxl_camera.util.key import Key
 
 # Set logging level
 logging.basicConfig(
-    # level=logging.DEBUG,
     level=logging.INFO,
     format="[%(name)s:%(filename)s:%(lineno)d] - [%(funcName)s] - %(asctime)s - %(levelname)s - %(message)s"
 )
