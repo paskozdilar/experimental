@@ -54,6 +54,8 @@ class Screen(Actor):
             name = Screen._generate_name()
         Screen._screen_names.add(name)
 
+        self.logger.debug(f'Initializing Screen: {name}')
+
         self.open = False
         self.image = Screen.empty_image(640, 480)
         self.name = name
@@ -61,10 +63,14 @@ class Screen(Actor):
         self.roi = Rectangle()
         self.new_roi = Rectangle()
         self.pressed_down = False
+        self.running = False
 
         self.status = 'OK'
         self.status_color = (255, 0, 0)
         self.last_update = 0
+
+        self.update_base = False
+        self.index = 0
 
         if control_actor is not None:
             self.start(control_actor, no_wait=True)
@@ -134,6 +140,8 @@ class Screen(Actor):
             self.pressed_down = False
             self.roi = Rectangle()
             self.new_roi = Rectangle()
+            self.update_base = True
+            self.running = False
 
     def set_roi(self, roi: tuple):
         self.roi.set_start(roi[0], roi[1])
@@ -145,6 +153,20 @@ class Screen(Actor):
             rectangle.
         """
         return self.roi.get()
+
+    def set_running(self, running):
+        self.running = running
+
+    def get_running(self):
+        return self.running
+
+    def get_update_base(self):
+        update_base = self.update_base
+        self.update_base = False
+        return update_base
+
+    def set_index(self, index):
+        self.index = index
 
     def set_status(self, status, color=None):
         if self.status != status:
@@ -175,19 +197,19 @@ class Screen(Actor):
         """
         x1, y1, x2, y2 = self.new_roi.get()
         width, height, _ = image_size(frame.frame)
-        font_height = height // 16
-        thickness = height // 256
+        font_height = height // 32
+        thickness = height // 512
 
         # Draw ROI
         pt1 = int(x1 * width), int(y1 * height)
         pt2 = int(x2 * width), int(y2 * height)
 
-        frame.frame = cv2.rectangle(frame.frame, pt1, pt2, 255, thickness)
+        self.image = cv2.rectangle(frame.frame, pt1, pt2, 255, thickness)
 
         # Draw font
         font_scale = cv2.getFontScaleFromHeight(cv2.FONT_HERSHEY_DUPLEX, font_height, 2)
         cv2.putText(
-            frame.frame,                # image
+            self.image,                 # image
             f'STATUS: {self.status}',   # text
             (10, 10 + font_height),     # origin
             cv2.FONT_HERSHEY_DUPLEX,    # font face
@@ -203,9 +225,66 @@ class Screen(Actor):
         self.last_update = current_time
 
         cv2.putText(
-            frame.frame,  # image
+            self.image,   # image
             f'FPS: {1 / (current_time - last_time):.1f}',  # text
-            (10, 10 + int(2.2*font_height)),  # origin
+            (10, 10 + int(2.3*font_height)),  # origin
+            cv2.FONT_HERSHEY_DUPLEX,  # font face
+            font_scale,  # font scale
+            self.status_color,  # color
+            thickness,  # thickness
+            cv2.FILLED  # line type (open cv)
+        )
+
+        # Image counter
+        cv2.putText(
+            self.image,  # image
+            f'IMAGES CAPTURED: {self.index}',  # text
+            (10, 10 + int(3.6 * font_height)),  # origin
+            cv2.FONT_HERSHEY_DUPLEX,  # font face
+            font_scale,  # font scale
+            self.status_color,  # color
+            thickness,  # thickness
+            cv2.FILLED  # line type (open cv)
+        )
+
+        # Instructions
+        cv2.putText(
+            self.image,  # image
+            f'[ENTER - {"stop" if self.running else "start"} capturing]',  # text
+            (10, 10 + int(4.9 * font_height)),  # origin
+            cv2.FONT_HERSHEY_DUPLEX,  # font face
+            font_scale,  # font scale
+            self.status_color,  # color
+            thickness,  # thickness
+            cv2.FILLED  # line type (open cv)
+        )
+
+        cv2.putText(
+            self.image,  # image
+            f'[ESC - exit]',  # text
+            (10, 10 + int(6.2 * font_height)),  # origin
+            cv2.FONT_HERSHEY_DUPLEX,  # font face
+            font_scale,  # font scale
+            self.status_color,  # color
+            thickness,  # thickness
+            cv2.FILLED  # line type (open cv)
+        )
+
+        cv2.putText(
+            self.image,  # image
+            f'[LEFT MOUSE - draw ROI]',  # text
+            (10, 10 + int(7.5 * font_height)),  # origin
+            cv2.FONT_HERSHEY_DUPLEX,  # font face
+            font_scale,  # font scale
+            self.status_color,  # color
+            thickness,  # thickness
+            cv2.FILLED  # line type (open cv)
+        )
+
+        cv2.putText(
+            self.image,  # image
+            f'[RIGHT MOUSE - reset base image]',  # text
+            (10, 10 + int(8.8 * font_height)),  # origin
             cv2.FONT_HERSHEY_DUPLEX,  # font face
             font_scale,  # font scale
             self.status_color,  # color
@@ -214,10 +293,7 @@ class Screen(Actor):
         )
 
         # Send to screen
-        cv2.imshow(self.name, frame.frame)
-
-        # Save frame
-        self.image = frame.frame
+        cv2.imshow(self.name, self.image)
 
     def wait(self, timeout=0):
         key_num = cv2.waitKey(timeout)

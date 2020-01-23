@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
+import cv2
+
 
 @dataclass
 class Frame:
@@ -23,3 +25,14 @@ class Frame:
         if self.timestamp is not None:
             return self.timestamp.strftime(self.fmt)
 
+    def get_jpeg(self):
+        return cv2.imencode('.jpg', self.frame, [cv2.IMWRITE_JPEG_QUALITY, 95])[1]
+
+    def copy(self):
+        return Frame(
+            width=self.width,
+            height=self.height,
+            channels=self.channels,
+            frame=cv2.UMat(self.frame.get().copy()),
+            timestamp=self.timestamp,
+        )

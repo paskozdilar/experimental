@@ -174,7 +174,7 @@ class Processor(Actor):
         return self.base_frame
 
     def set_base_frame(self, base_frame: Frame):
-        self.base_frame = base_frame
+        self.base_frame = base_frame.copy()
 
     def get_state(self):
         return self.state
