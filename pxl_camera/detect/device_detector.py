@@ -66,22 +66,42 @@ class DeviceDetector(Actor):
         """
         super(DeviceDetector, self).__init__()
 
-        if actor is not None:
-            self.actor = actor
-            self.method = method
+        self.actor = None
+        self.method = None
 
-            # We use {source='kernel'} for udev events here because for some
-            # reason udev won't forward events inside docker containers.
-            # TODO: Investigate this.
+        # We use {source='kernel'} for udev events here because for some
+        # reason udev won't forward events inside docker containers.
+        # TODO: Investigate this.
 
-            self.monitor = pyudev.Monitor.from_netlink(self._udev_context, source='kernel')
-            self.monitor.filter_by(subsystem="video4linux")
+        self.monitor = pyudev.Monitor.from_netlink(self._udev_context, source='kernel')
+        self.monitor.filter_by(subsystem="video4linux")
 
-            self.observer = pyudev.MonitorObserver(
-                monitor=self.monitor,
-                callback=self.event_handler,
-            )
-            self.observer.start()
+        self.observer = pyudev.MonitorObserver(
+            monitor=self.monitor,
+            callback=self.event_handler,
+        )
+        self.observer.start()
+
+        if isinstance(actor, Actor) and isinstance(method, str):
+            self.start(actor, method)
+
+    def __call__(self, actor: Actor, method: str):
+        if isinstance(actor, Actor) and isinstance(method, str):
+            self.start(actor, method)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
+
+    def start(self, actor: Actor, method: str):
+        self.actor = actor
+        self.method = method
+
+    def stop(self):
+        self.actor = None
+        self.method = None
 
     def event_handler(self, device):
         """
@@ -91,7 +111,7 @@ class DeviceDetector(Actor):
               - capture: '/dev/path' of the capture
               - action: 'add' and 'remove' are relevant ones. Others can be ignored.
         """
-        if self.actor is not None:
+        if isinstance(self.actor, Actor) and isinstance(self.method, str):
             Actor.ProxyMethod(
                 actor=self.actor,
                 method=self.method,

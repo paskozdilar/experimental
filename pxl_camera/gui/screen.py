@@ -189,6 +189,30 @@ class Screen(Actor):
         elif color == 'gray':
             self.status_color = (127, 127, 127)
 
+    @staticmethod
+    def _put_text_outline(image, text, font_height, row, font_scale, color, thickness):
+        cv2.putText(
+            image,      # image
+            text,       # text
+            (10, 1.2*row*font_height),  # origin
+            cv2.FONT_HERSHEY_DUPLEX,  # font face
+            font_scale,  # font scale
+            (0, 0, 0),  # color
+            thickness + 5,  # thickness
+            cv2.FILLED  # line type (opencv)
+        )
+
+        cv2.putText(
+            image,  # image
+            text,  # text
+            (10, 10 + font_height),  # origin
+            cv2.FONT_HERSHEY_DUPLEX,  # font face
+            font_scale,  # font scale
+            color,  # color
+            thickness,  # thickness
+            cv2.FILLED  # line type (opencv)
+        )
+
     def update_image(self, frame: Frame):
         """
             Updates screen with RGB encoded frame.
@@ -199,6 +223,7 @@ class Screen(Actor):
         width, height, _ = image_size(frame.frame)
         font_height = height // 32
         thickness = height // 512
+        font_scale = cv2.getFontScaleFromHeight(cv2.FONT_HERSHEY_DUPLEX, font_height, 2)
 
         # Draw ROI
         pt1 = int(x1 * width), int(y1 * height)
@@ -207,22 +232,31 @@ class Screen(Actor):
         self.image = cv2.rectangle(frame.frame, pt1, pt2, 255, thickness)
 
         # Draw font
-        font_scale = cv2.getFontScaleFromHeight(cv2.FONT_HERSHEY_DUPLEX, font_height, 2)
-        cv2.putText(
-            self.image,                 # image
-            f'STATUS: {self.status}',   # text
-            (10, 10 + font_height),     # origin
-            cv2.FONT_HERSHEY_DUPLEX,    # font face
-            font_scale,                 # font scale
-            self.status_color,            # color
-            thickness,                  # thickness
-            cv2.FILLED                  # line type (opencv)
+        self._put_text_outline(
+            image=self.image,
+            text=f'STATUS: {self.status}',
+            font_height=font_height,
+            row=1,
+            font_scale=font_scale,
+            color=self.status_color,
+            thickness=thickness,
         )
 
         # FPS
         current_time = time.time()
         last_time = self.last_update
         self.last_update = current_time
+
+        cv2.putText(
+            self.image,  # image
+            f'FPS: {1 / (current_time - last_time):.1f}',  # text
+            (10, 10 + int(2.3 * font_height)),  # origin
+            cv2.FONT_HERSHEY_DUPLEX,  # font face
+            font_scale,  # font scale
+            (0, 0, 0),  # color
+            thickness + 5,  # thickness
+            cv2.FILLED  # line type (open cv)
+        )
 
         cv2.putText(
             self.image,   # image
@@ -236,6 +270,17 @@ class Screen(Actor):
         )
 
         # Image counter
+        cv2.putText(
+            self.image,  # image
+            f'IMAGES CAPTURED: {self.index}',  # text
+            (10, 10 + int(3.6 * font_height)),  # origin
+            cv2.FONT_HERSHEY_DUPLEX,  # font face
+            font_scale,  # font scale
+            (0, 0, 0),  # color
+            thickness + 5,  # thickness
+            cv2.FILLED  # line type (open cv)
+        )
+
         cv2.putText(
             self.image,  # image
             f'IMAGES CAPTURED: {self.index}',  # text

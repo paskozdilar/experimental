@@ -71,7 +71,7 @@ try:
             if screen.get_running():
                 if state == Processor.State.GOOD:
                     screen.set_status('GOOD', color='green')
-                    with open(f'frames/image_{index}.jpeg', 'wb') as image_file:
+                    with open(f'frames/{frame.get_timestamp()}.jpeg', 'wb') as image_file:
                         image_file.write(frame.get_jpeg().tostring())
                         screen.set_index(index)
                         index += 1
@@ -82,7 +82,7 @@ try:
                 elif state == Processor.State.NONE:
                     screen.set_status('UNKNOWN', color='gray')
             else:
-                screen.set_status('PAUSED', color='black')
+                screen.set_status('PAUSED', color='gray')
 
             screen.update_image(frame)
 
