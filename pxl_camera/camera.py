@@ -1,7 +1,8 @@
 """
-    Class for single camera management.
+    Generic class for single camera management.
 
-    Manages a single camera through /dev/videoX node.
+    Manages a single camera through /dev/videoX node and allows control over
+    resolution, focus and preprocessing.
 """
 
 import dataclasses
