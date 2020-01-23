@@ -25,8 +25,8 @@ class RawCapture(Actor):
         frame_height: int = None
         fps: int = None
         convert_rgb: bool = False
-        autofocus: bool = None
-        focus: int = None
+        autofocus: bool = False
+        focus: int = 60
 
         @staticmethod
         def decode_fourcc(fourcc):
@@ -57,11 +57,15 @@ class RawCapture(Actor):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
+
+    def start(self, config: Config):
+        self.set_config(config)
+
+    def stop(self):
+        self.logger.info(f'Releasing capture {self.config.device}...')
         self.capture.release()
         self.config = RawCapture.Config()
-
-    def _convert_to_rgb(self, raw_frame):
-        return cv2.cvtColor(raw_frame, self._convert_code)
 
     def set_focus(self, focus):
         success = self.capture.set(cv2.CAP_PROP_FOCUS, focus)
@@ -161,5 +165,4 @@ class RawCapture(Actor):
         return self.frame
 
     def on_exit(self):
-        self.logger.info(f'Releasing capture {self.config.device}...')
-        self.capture.release()
+        self.stop()
