@@ -63,8 +63,9 @@ class RawCapture(Actor):
         self.set_config(config)
 
     def stop(self):
-        self.logger.info(f'Releasing capture {self.config.device}...')
-        self.capture.release()
+        if self.capture.isOpened():
+            self.logger.info(f'Releasing capture {self.config.device}...')
+            self.capture.release()
         self.config = RawCapture.Config()
 
     def set_focus(self, focus):
@@ -105,7 +106,7 @@ class RawCapture(Actor):
         self.logger.debug('set config - fourcc...')
 
         if config.fourcc is None:
-            self.config.fourcc = RawCapture.config.decode_fourcc(self.capture.get(cv2.CAP_PROP_FOURCC))
+            self.config.fourcc = RawCapture.Config.decode_fourcc(self.capture.get(cv2.CAP_PROP_FOURCC))
         else:
             success = self.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*config.fourcc))
             if success:

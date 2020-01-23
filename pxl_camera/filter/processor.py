@@ -8,7 +8,6 @@ import cv2
 from pxl_actor.actor import Actor
 
 from pxl_camera.util.frame import Frame
-from pxl_camera.capture.frame_muxer import FrameMuxer
 from pxl_camera.util import image_processing
 
 
@@ -54,6 +53,7 @@ class Processor(Actor):
 
             return abs_diff_factor < ABS_THRESHOLD
 
+            # TODO: Reimplement this?
             # if abs_diff > ABS_THRESHOLD:
             #     return False
             #
@@ -103,7 +103,7 @@ class Processor(Actor):
 
             processor.set_state(state, _requeue_worker=True)
 
-    def __init__(self, muxer_actor: FrameMuxer = None):
+    def __init__(self, muxer_actor: Actor = None):
         super(Processor, self).__init__()
 
         self.frame = None
@@ -120,8 +120,8 @@ class Processor(Actor):
         if muxer_actor is not None:
             self.start(muxer_actor, no_wait=True)
 
-    def __call__(self, muxer_actor: FrameMuxer):
-        if not isinstance(muxer_actor, FrameMuxer):
+    def __call__(self, muxer_actor: Actor):
+        if not isinstance(muxer_actor, Actor):
             raise TypeError(f'muxer_actor [{type(muxer_actor)}] not instance of FrameMuxer')
         else:
             self.start(muxer_actor)
@@ -133,7 +133,7 @@ class Processor(Actor):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
 
-    def start(self, muxer_actor: FrameMuxer):
+    def start(self, muxer_actor: Actor):
         self._muxer = muxer_actor
         self.started = True
 
@@ -174,7 +174,7 @@ class Processor(Actor):
         return self.base_frame
 
     def set_base_frame(self, base_frame: Frame):
-        self.base_frame = base_frame.copy()
+        self.base_frame = base_frame.copy() if base_frame is not None else None
 
     def get_state(self):
         return self.state

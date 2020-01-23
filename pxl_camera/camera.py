@@ -10,6 +10,7 @@ from pxl_actor.actor import Actor
 
 from pxl_camera.capture.frame_muxer import FrameMuxer
 from pxl_camera.capture.raw_capture import RawCapture
+
 from pxl_camera.filter.processor import Processor
 
 
@@ -20,7 +21,6 @@ class Camera(Actor):
         device: str
         width: int
         height: int
-        fps: int
 
     def __init__(self, config: Config = None):
         super(Camera, self).__init__()
@@ -33,8 +33,11 @@ class Camera(Actor):
             self.start(config)
 
     def __call__(self, config: Config = None):
-        if isinstance(config, Camera.Config):
+        if not isinstance(config, Camera.Config):
+            raise TypeError(f'config [{type(config)}] not instance of Config.Config')
+        else:
             self.start(config)
+            return self
 
     def __enter__(self):
         return self
@@ -43,11 +46,12 @@ class Camera(Actor):
         self.stop()
 
     def start(self, config: Config):
+        self.logger.info(f'Starting Camera [{config}]')
+
         capture_config = RawCapture.Config(
             device=config.device,
             frame_width=config.width,
             frame_height=config.height,
-            fps=config.fps,
         )
 
         self.capture.start(config=capture_config)
@@ -58,3 +62,24 @@ class Camera(Actor):
         self.processor.stop()
         self.muxer.stop()
         self.capture.stop()
+
+    #
+    def get_focus(self):
+        return self.capture.get_focus()
+
+    def set_focus(self, focus: int):
+        return self.capture.set_focus(focus)
+
+    #
+    def get_base_frame(self):
+        return self.processor.get_base_frame()
+
+    def set_base_frame(self, base_frame):
+        self.processor.set_base_frame(base_frame)
+
+    #
+    def get_frame(self):
+        frame = self.muxer.get_frame()
+        frame.state = self.processor.get_state()
+
+        return frame

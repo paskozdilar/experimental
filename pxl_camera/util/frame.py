@@ -12,6 +12,7 @@ class Frame:
     channels: int = None
     frame: Any = None
     timestamp: datetime = None
+    state: Any = None
 
     fmt: str = '%F_%H-%M-%S-%f'
 
@@ -25,8 +26,8 @@ class Frame:
         if self.timestamp is not None:
             return self.timestamp.strftime(self.fmt)
 
-    def get_jpeg(self):
-        return cv2.imencode('.jpg', self.frame, [cv2.IMWRITE_JPEG_QUALITY, 95])[1]
+    def get_jpeg(self, quality=95):
+        return cv2.imencode('.jpg', self.frame, [cv2.IMWRITE_JPEG_QUALITY, quality])[1]
 
     def copy(self):
         return Frame(

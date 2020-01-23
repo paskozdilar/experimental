@@ -17,14 +17,14 @@ import cv2
 
 from pxl_actor.actor import Actor
 
-from pxl_camera.util.frame import Frame
-from pxl_camera.capture.raw_capture import RawCapture
+from pxl_camera.filter.processor import Processor
 from pxl_camera.util import image_processing
+from pxl_camera.util.frame import Frame
 
 
 class FrameMuxer(Actor):
 
-    def __init__(self, capture_actor: RawCapture = None):
+    def __init__(self, capture_actor: Actor = None):
         super(FrameMuxer, self).__init__()
 
         self.frame = None
@@ -35,8 +35,8 @@ class FrameMuxer(Actor):
         if capture_actor is not None:
             self.start(capture_actor)
 
-    def __call__(self, capture_actor: RawCapture):
-        if not isinstance(capture_actor, RawCapture):
+    def __call__(self, capture_actor: Actor):
+        if not isinstance(capture_actor, Actor):
             raise TypeError(f'capture_actor [{type(capture_actor)}] not instance of RawCapture')
         else:
             self.start(capture_actor)
@@ -48,7 +48,7 @@ class FrameMuxer(Actor):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
 
-    def start(self, capture_actor: RawCapture):
+    def start(self, capture_actor: Actor):
         self.started = True
         self.ping(capture_actor)
 
@@ -58,7 +58,7 @@ class FrameMuxer(Actor):
     def on_exit(self):
         self.stop()
 
-    def ping(self, capture_actor: RawCapture):
+    def ping(self, capture_actor: Actor):
         if not self.started:
             return
 
@@ -90,4 +90,11 @@ class FrameMuxer(Actor):
         rgb_frame = cv2.cvtColor(self.frame, self.colorspace)
         width, height, channels = image_processing.image_size(rgb_frame)
 
-        return Frame(width=width, height=height, channels=channels, frame=rgb_frame, timestamp=self.timestamp)
+        return Frame(
+            width=width,
+            height=height,
+            channels=channels,
+            frame=rgb_frame,
+            timestamp=self.timestamp,
+            state=Processor.State.NONE
+        )

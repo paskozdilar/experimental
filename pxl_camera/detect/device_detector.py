@@ -86,8 +86,13 @@ class DeviceDetector(Actor):
             self.start(actor, method)
 
     def __call__(self, actor: Actor, method: str):
-        if isinstance(actor, Actor) and isinstance(method, str):
+        if not isinstance(actor, Actor):
+            raise TypeError(f'actor [{type(actor)}] not instance of Actor')
+        elif not isinstance(method, str):
+            raise TypeError(f'method [{type(method)}] not instance of str')
+        else:
             self.start(actor, method)
+            return self
 
     def __enter__(self):
         return self
