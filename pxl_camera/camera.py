@@ -23,7 +23,7 @@ class Camera(Actor):
         width: int
         height: int
 
-    def __init__(self, config: Config = None):
+    def __init__(self, config: Config = None, _filter: bool = True):
         super(Camera, self).__init__()
 
         self.capture = RawCapture()
@@ -33,7 +33,7 @@ class Camera(Actor):
         if config is not None:
             self.start(config)
 
-    def __call__(self, config: Config = None):
+    def __call__(self, config: Config = None, _filter: bool = True):
         if not isinstance(config, Camera.Config):
             raise TypeError(f'config [{type(config)}] not instance of Config.Config')
         else:
@@ -46,7 +46,7 @@ class Camera(Actor):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
 
-    def start(self, config: Config):
+    def start(self, config: Config, _filter=True):
         self.logger.info(f'Starting Camera [{config}]')
 
         capture_config = RawCapture.Config(
@@ -57,7 +57,9 @@ class Camera(Actor):
 
         self.capture.start(config=capture_config)
         self.muxer.start(capture_actor=self.capture)
-        self.processor.start(muxer_actor=self.muxer)
+
+        if _filter:
+            self.processor.start(muxer_actor=self.muxer)
 
     def stop(self):
         self.processor.stop()
