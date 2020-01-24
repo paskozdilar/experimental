@@ -29,6 +29,7 @@ class Camera(Actor):
         self.capture = RawCapture()
         self.muxer = FrameMuxer()
         self.processor = Processor()
+        self._filter = False
 
         if config is not None:
             self.start(config)
@@ -61,10 +62,14 @@ class Camera(Actor):
         if _filter:
             self.processor.start(muxer_actor=self.muxer)
 
+        self._filter = _filter
+
     def stop(self):
         self.processor.stop()
         self.muxer.stop()
         self.capture.stop()
+
+        self._filter = False
 
     #
     def get_focus(self):
@@ -79,6 +84,13 @@ class Camera(Actor):
 
     def set_base_frame(self, base_frame):
         self.processor.set_base_frame(base_frame)
+
+    #
+    def get_diff_frame(self):
+        return self.processor.get_diff_frame() if self._filter else None
+
+    def set_diff_frame(self, frame):
+        self.processor.set_diff_frame(frame)
 
     #
     def get_frame(self):

@@ -138,10 +138,7 @@ class Screen(Actor):
         elif event == cv2.EVENT_RBUTTONDOWN:
             self.logger.debug(f'Mouse event: {event} [RBUTTONDOWN]')
             self.pressed_down = False
-            self.roi = Rectangle()
-            self.new_roi = Rectangle()
             self.update_base = True
-            self.running = False
 
     def set_roi(self, roi: tuple):
         self.roi.set_start(roi[0], roi[1])
@@ -223,7 +220,7 @@ class Screen(Actor):
         width, height, _ = image_size(frame.frame)
 
         font_height = height // 32
-        thickness = height // 512
+        thickness = height // 256
         font_scale = cv2.getFontScaleFromHeight(cv2.FONT_HERSHEY_DUPLEX, font_height, 2)
 
         def row():

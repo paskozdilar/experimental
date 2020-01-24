@@ -51,6 +51,10 @@ def sharpness(image: cv2.UMat):
     return cv2.Laplacian(image, cv2.CV_64FC3).get().var()
 
 
+def make_smoother(image: cv2.UMat):
+    return cv2.medianBlur(src=image, ksize=5, dst=image)
+
+
 def abs_diff(image_a: cv2.UMat, image_b: cv2.UMat, roi: tuple = None):
     """
         Calculates absolute difference between two RGB frames.

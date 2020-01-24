@@ -12,5 +12,5 @@ logging.basicConfig(
 cm = CameraManager()
 
 while True:
-    print(cm.status())
+    print(cm.get_devices())
     time.sleep(1)

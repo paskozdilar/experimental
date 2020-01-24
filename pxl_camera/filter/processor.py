@@ -30,6 +30,11 @@ class Processor(Actor):
 
         # TODO: Take timestamps into account?
 
+        def __init__(self):
+            super(Processor._Worker, self).__init__()
+
+            self.diff_frame = None
+
         def equal(self, frame_a: cv2.UMat, frame_b: cv2.UMat, roi: tuple = None):
             """
                 Returns True if frame_a and frame_b are to be considered equal.
@@ -45,7 +50,9 @@ class Processor(Actor):
 
             # First round - fast processing
             abs_diff = image_processing.abs_diff(image_a=frame_a, image_b=frame_b, roi=roi)
-            abs_diff = cv2.threshold(src=abs_diff, thresh=40, maxval=255, type=cv2.THRESH_BINARY)[1]
+            abs_diff = cv2.threshold(src=abs_diff, thresh=50, maxval=255, type=cv2.THRESH_BINARY)[1]
+
+            self.diff_frame = abs_diff
 
             abs_diff_factor = image_processing.abs_diff_factor(abs_diff)
 
@@ -101,6 +108,7 @@ class Processor(Actor):
             else:
                 state = Processor.State.NONE
 
+            processor.set_diff_frame(self.diff_frame)
             processor.set_state(state, _requeue_worker=True)
 
     def __init__(self, muxer_actor: Actor = None):
@@ -109,6 +117,7 @@ class Processor(Actor):
         self.frame = None
         self.base_frame = None
         self.last_frame = None
+        self.diff_frame = None
         self.roi = None
         self.started = True
 
@@ -153,7 +162,7 @@ class Processor(Actor):
 
         self.logger.debug(f'Sending new frame to worker')
 
-        # We ping the worker, then worker pings us through update_state, then we ping him again there, etc.
+        # We ping the worker, then worker pings us through set_state(), then we ping him again there, etc.
         self._worker.process_frame(
             frame=self.frame,
             last_frame=self.last_frame,
@@ -175,6 +184,24 @@ class Processor(Actor):
 
     def set_base_frame(self, base_frame: Frame):
         self.base_frame = base_frame.copy() if base_frame is not None else None
+
+    def get_diff_frame(self):
+        return self.diff_frame
+
+    def set_diff_frame(self, frame: cv2.UMat):
+        if isinstance(frame, Frame):
+            frame = frame.frame()
+
+        width, height, channels = image_processing.image_size(frame)
+
+        self.diff_frame = Frame(
+            width=width,
+            height=height,
+            channels=channels,
+            frame=frame,
+            timestamp=self.frame.get_timestamp(),
+            state=Processor.State.NONE,
+        )
 
     def get_state(self):
         return self.state

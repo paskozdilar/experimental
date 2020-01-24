@@ -85,7 +85,7 @@ try:
 
             screen.update_image(frame)
 
-            key = screen.wait(10)
+            key = screen.wait(1)
             logging.debug(f'state: {state}, key: {key}')
 
             if key == Key.ENTER:
