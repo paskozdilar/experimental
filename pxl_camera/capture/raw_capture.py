@@ -144,6 +144,12 @@ class RawCapture(Actor):
                 setattr(self.config, key, self.capture.get(cv2_attribute))
 
             self.logger.debug(f'Setting {key} to {value}: {"success" if success else "failure"}')
+            # # Sometimes devices will malfunction and will be unable to set resolution.
+            # # I should reverse engineer this camera/v4l drivers when I find some time.
+            #
+            # if key == 'frame_width':
+            #     pass
+            #     # TODO: Recreate the issue and implement a fix!
 
         self.logger.info(f'Successfully opened capture {self.config.device} and set config {config}')
 
