@@ -25,8 +25,8 @@ class RawCapture(Actor):
         frame_height: int = None
         fps: int = None
         convert_rgb: bool = False
-        autofocus: bool = False
-        focus: int = 60
+        autofocus: bool = None
+        focus: int = None
 
         @staticmethod
         def decode_fourcc(fourcc):

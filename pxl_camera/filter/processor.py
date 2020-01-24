@@ -50,8 +50,8 @@ class Processor(Actor):
 
             # First round - fast processing
             abs_diff = image_processing.abs_diff(image_a=frame_a, image_b=frame_b, roi=roi)
-            abs_diff = cv2.threshold(src=cv2.medianBlur(src=abs_diff, ksize=5, dst=abs_diff), thresh=150, maxval=255, type=cv2.THRESH_BINARY)[1]
-
+            abs_diff = cv2.threshold(src=abs_diff, thresh=150, maxval=255, type=cv2.THRESH_BINARY)[1]
+            # cv2.medianBlur(src=abs_diff, ksize=5, dst=abs_diff)
             self.diff_frame = abs_diff
 
             abs_diff_factor = image_processing.abs_diff_factor(abs_diff)
