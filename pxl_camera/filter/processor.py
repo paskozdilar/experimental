@@ -50,7 +50,7 @@ class Processor(Actor):
 
             # First round - fast processing
             abs_diff = image_processing.abs_diff(image_a=frame_a, image_b=frame_b, roi=roi)
-            abs_diff = cv2.threshold(src=cv2.medianBlur(src=abs_diff, ksize=5, dst=abs_diff), thresh=40, maxval=255, type=cv2.THRESH_BINARY)[1]
+            abs_diff = cv2.threshold(src=cv2.medianBlur(src=abs_diff, ksize=5, dst=abs_diff), thresh=150, maxval=255, type=cv2.THRESH_BINARY)[1]
 
             self.diff_frame = abs_diff
 
@@ -91,7 +91,7 @@ class Processor(Actor):
 
             if not move and base_frame is not None:
                 self.logger.debug(f'Searching for base')
-                base = self.equal(frame.frame, base_frame.frame, 2, roi)
+                base = self.equal(frame.frame, base_frame.frame, 0.5, roi)
                 self.logger.debug(f'Base: {base}')
 
             # Evaluation

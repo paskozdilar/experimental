@@ -43,6 +43,8 @@ screen = Screen()
 
 logging.info('Starting...')
 
+# TODO: Implement autofocus with movement detection
+
 try:
     with capture(config=conf), \
             muxer(capture_actor=capture), \
@@ -95,11 +97,11 @@ try:
             else:
                 screen.set_status('PAUSED', color='gray')
 
-            # if diff_frame:
-            #     screen.update_image(diff_frame)
+            if diff_frame:
+                screen.update_image(diff_frame)
 
             # # Comment out the above two lines and uncomment the below one to switch to live view...
-            screen.update_image(frame)
+            # screen.update_image(frame)
 
             key = screen.wait(1)
             logging.debug(f'state: {state}, key: {key}')
