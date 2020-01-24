@@ -124,6 +124,7 @@ class DeviceDetector(Actor):
         self.method = None
 
         self.devices = {}
+        self._devices_by_dev_path = {}
 
         # We use {source='kernel'} for udev events here because for some
         # reason udev won't forward events inside docker containers.
@@ -198,6 +199,7 @@ class DeviceDetector(Actor):
 
     def _update_mapping(self):
         self.devices.clear()
+        self._devices_by_dev_path.clear()
 
         for device in self._udev_context.list_devices(subsystem='video4linux'):
 
@@ -218,6 +220,7 @@ class DeviceDetector(Actor):
                     continue
 
                 self.devices[serial] = dev_path
+                self._devices_by_dev_path[dev_path] = serial
 
             except Exception:
                 continue
@@ -230,10 +233,8 @@ class DeviceDetector(Actor):
         return self.devices
 
     def get_dev_path(self, serial):
-        return self.get_devices().get(serial, None)
+        return self.devices.get(serial, None)
 
     def get_serial(self, dev_path):
-        devices_by_path = {_dev_path: _serial for _serial, _dev_path in self.get_devices().items()}
-
-        return devices_by_path.get(dev_path, None)
+        return self._devices_by_dev_path.get(dev_path, None)
 
