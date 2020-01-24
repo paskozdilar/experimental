@@ -35,7 +35,7 @@ class Processor(Actor):
 
             self.diff_frame = None
 
-        def equal(self, frame_a: cv2.UMat, frame_b: cv2.UMat, roi: tuple = None):
+        def equal(self, frame_a: cv2.UMat, frame_b: cv2.UMat, threshold: float = 0.5, roi: tuple = None):
             """
                 Returns True if frame_a and frame_b are to be considered equal.
             """
@@ -45,20 +45,20 @@ class Processor(Actor):
             # GRID_COLS = 5
             # CELL_THRESHOLD = 10.
 
-            ABS_THRESHOLD = 1
+            # ABS_THRESHOLD = 0.5
             # GRID_THRESHOLD = 1
 
             # First round - fast processing
             abs_diff = image_processing.abs_diff(image_a=frame_a, image_b=frame_b, roi=roi)
-            abs_diff = cv2.threshold(src=abs_diff, thresh=50, maxval=255, type=cv2.THRESH_BINARY)[1]
+            abs_diff = cv2.threshold(src=cv2.medianBlur(src=abs_diff, ksize=5, dst=abs_diff), thresh=40, maxval=255, type=cv2.THRESH_BINARY)[1]
 
             self.diff_frame = abs_diff
 
             abs_diff_factor = image_processing.abs_diff_factor(abs_diff)
 
-            self.logger.debug(f'Absolute diff: {abs_diff_factor}, Threshold: {ABS_THRESHOLD}')
+            self.logger.info(f'Absolute diff: {abs_diff_factor}, Threshold: {threshold}')
 
-            return abs_diff_factor < ABS_THRESHOLD
+            return abs_diff_factor < threshold
 
             # TODO: Reimplement this?
             # if abs_diff > ABS_THRESHOLD:
@@ -86,12 +86,12 @@ class Processor(Actor):
 
             if last_frame is not None:
                 self.logger.debug(f'Searching for movement')
-                move = not self.equal(frame.frame, last_frame.frame, roi)
+                move = not self.equal(frame.frame, last_frame.frame, 0.5, roi)
                 self.logger.debug(f'Movement: {move}')
 
             if not move and base_frame is not None:
                 self.logger.debug(f'Searching for base')
-                base = self.equal(frame.frame, base_frame.frame, roi)
+                base = self.equal(frame.frame, base_frame.frame, 1, roi)
                 self.logger.debug(f'Base: {base}')
 
             # Evaluation
@@ -189,6 +189,9 @@ class Processor(Actor):
         return self.diff_frame
 
     def set_diff_frame(self, frame: cv2.UMat):
+        if frame is None or self.frame is None:
+            return
+
         if isinstance(frame, Frame):
             frame = frame.frame()
 

@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 
 conf = RawCapture.Config(
-    device='/dev/video0',
+    device='/dev/video2',
     fourcc='UYVY',
     frame_width=2*1920,
     frame_height=2*1080,
@@ -55,6 +55,7 @@ try:
 
         while True:
             frame = muxer.get_frame()
+            diff_frame = processor.get_diff_frame()
             state = processor.get_state()
 
             # Reload base from screen command
@@ -83,6 +84,10 @@ try:
             else:
                 screen.set_status('PAUSED', color='gray')
 
+            # if diff_frame:
+            #     screen.update_image(diff_frame)
+
+            # # Comment out the above two lines and uncomment the below one to switch to live view...
             screen.update_image(frame)
 
             key = screen.wait(1)
