@@ -139,7 +139,8 @@ class DeviceDetector(Actor):
         self.observer.start()
 
         self._update_mapping()
-        self.logger.info(f'Detected devices: {self.devices}')
+
+        self.logger.debug(f'Detected devices: {self.devices}')
 
         if isinstance(actor, Actor) and isinstance(method, str):
             self.start(actor, method)
@@ -163,7 +164,14 @@ class DeviceDetector(Actor):
         self.actor = actor
         self.method = method
 
+        # Send all connect events on start
+        for serial, device in self.devices.items():
+            self._send_event(device=device, serial=serial, action='add')
+
     def stop(self):
+        del self.actor
+        del self.method
+
         self.actor = None
         self.method = None
 
@@ -173,12 +181,17 @@ class DeviceDetector(Actor):
 
             Updates the device mapping list and calls the method of the actor (passed
             through the constructor) with two arguments:
-              - device: '/dev/path' of the capture
+              - serial: serial number of the connected camera
               - action: 'add' and 'remove' are relevant ones. Others can be ignored.
         """
 
-        if device.action == 'remove' and device.device_node not in self.devices.values():
-            return
+        serial = self.get_serial(device.device_node)
+
+        if device.action == 'remove':
+            if device.device_node not in self.devices.values():
+                return
+
+            self._update_mapping()
 
         if device.action == 'add':
             # Wait for udev to handle the device
@@ -187,15 +200,21 @@ class DeviceDetector(Actor):
             if not _is_capture_device(device.device_node):
                 return
 
-        DeviceDetector.logger.info(f'Device event: {device.device_node} {device.action}')
+            self._update_mapping()
 
-        self._update_mapping()
+            serial = self.get_serial(device.device_node)
+
+        DeviceDetector.logger.debug(f'Device event: {device.device_node} [{serial}] - {device.action}')
 
         if isinstance(self.actor, Actor) and isinstance(self.method, str):
-            Actor.ProxyMethod(
-                actor=self.actor,
-                method=self.method,
-            )(device=device.device_node, action=device.action, no_wait=True)
+            self._send_event(device=device.device_node, serial=serial, action=device.action)
+
+    def _send_event(self, device, serial, action):
+        self.actor.enqueue(self.method, kwargs={
+            'device': device,
+            'serial': serial,
+            'action': action
+        })
 
     def _update_mapping(self):
         self.devices.clear()
