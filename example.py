@@ -10,18 +10,26 @@ import time
 
 from pxl_camera.capture.frame_muxer import FrameMuxer
 from pxl_camera.capture.raw_capture import RawCapture
+from pxl_camera.detect.device_detector import DeviceDetector
 from pxl_camera.filter.processor import Processor
 from pxl_camera.gui.screen import Screen
 from pxl_camera.util.key import Key
 
 # Set logging level
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="[%(name)s:%(filename)s:%(lineno)d] - [%(funcName)s] - %(asctime)s - %(levelname)s - %(message)s"
 )
 
+detector = DeviceDetector()
+devices = detector.get_devices()
+
+if not devices:
+    logging.error('No camera detected.')
+    exit(1)
+
 conf = RawCapture.Config(
-    device='/dev/video2',
+    device=devices.popitem()[1],
     fourcc='UYVY',
     frame_width=2*1920,
     frame_height=2*1080,
@@ -44,10 +52,13 @@ try:
         time.sleep(1)
 
         base_frame = muxer.get_frame()
+
         roi = (0.0, 0.0, 1.0, 1.0)
         processor.set_roi(roi)
 
         processor.set_base_frame(base_frame)
+        screen.update_image(base_frame)
+        screen.wait(1)
 
         index = 1
 

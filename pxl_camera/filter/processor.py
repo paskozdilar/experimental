@@ -91,7 +91,7 @@ class Processor(Actor):
 
             if not move and base_frame is not None:
                 self.logger.debug(f'Searching for base')
-                base = self.equal(frame.frame, base_frame.frame, 1, roi)
+                base = self.equal(frame.frame, base_frame.frame, 2, roi)
                 self.logger.debug(f'Base: {base}')
 
             # Evaluation
