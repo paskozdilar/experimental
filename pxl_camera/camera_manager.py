@@ -5,6 +5,9 @@
     Manages multiple cameras by serial number.
 """
 
+import enum
+from typing import Dict
+
 from pxl_actor.actor import Actor
 
 from pxl_camera.camera import Camera
@@ -19,40 +22,61 @@ class CameraManager(Actor):
         self.device_detector = DeviceDetector()
         self.device_detector.start(actor=self, method='handle_device_event')
 
-        self.configs = dict()
-        self.cameras = dict()
+        self.config = dict()
+        self.camera = dict()
 
     def handle_device_event(self, device: str, serial: str, action: str):
 
         self.logger.info(f'Device event: {device} [{serial}] - {action}')
 
-        if action == 'remove':
-            self.cameras[serial].stop()
-            self.cameras[serial].kill()
-            del self.cameras[serial]
-
-        if action == 'add':
-            self.cameras[serial] = Camera()
+        # if action == 'remove':
+        #     self.cameras[serial].stop()
+        #     self.cameras[serial].kill()
+        #     del self.cameras[serial]
+        #
+        # if action == 'add':
+        #     self.cameras[serial] = Camera()
 
     #
-    def get_config(self, serial: str):
-        return self.configs.get(serial, None)
+    def get_config(self):
+        return self.config
 
-    def set_config(self, serial: str, config: dict):
-        self.configs[serial] = config
-        # TODO: Update state...
+    def set_config(self, config: Dict[str, Camera.Config]):
+        """
+            Updates config with given values.
+
+        config = {
+            [serial_1]: Camera.Config(...),
+            [serial_2]: Camera.Config(...),
+            ...
+        }
+        """
+
+        for serial, camera_config in config.items():
+
+            # Stop already started Camera
+            if serial in self.camera:
+                self.camera[serial].stop()
+            else:
+                self.camera[serial] = Camera()
+
+            # Start new one
+            self.camera[serial].start(camera_config)
+
+        # Save config
+        self.config = config
 
     #
     def get_devices(self):
         """
-            Returns list of serial numbers of available cameras.
+            Returns list of serial numbers of connected cameras.
         """
 
-        return list(self.cameras.keys())
+        return list(self.device_detector.get_devices().keys())
 
     def get_status(self):
         """
-            Returns status of all plugged in cameras
+            Returns status of all connected cameras.
         """
         pass
 

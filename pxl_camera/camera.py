@@ -19,10 +19,10 @@ class Camera(Actor):
 
     @dataclasses.dataclass
     class Config:
-        device: str
-        width: int
-        height: int
-        filter: bool
+        device: str = None
+        width: int = None
+        height: int = None
+        filter: bool = None
 
     def __init__(self, config: Config = None):
         super(Camera, self).__init__()

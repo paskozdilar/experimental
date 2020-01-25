@@ -43,8 +43,6 @@ screen = Screen()
 
 logging.info('Starting...')
 
-# TODO: Implement autofocus with movement detection
-
 try:
     with capture(config=conf), \
             muxer(capture_actor=capture), \
