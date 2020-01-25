@@ -22,7 +22,7 @@ class Camera(Actor):
         device: str
         width: int
         height: int
-        filter: bool = True
+        filter: bool
 
     def __init__(self, config: Config = None):
         super(Camera, self).__init__()
