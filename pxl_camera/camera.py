@@ -95,6 +95,7 @@ class Camera(Actor):
     #
     def get_frame(self):
         frame = self.muxer.get_frame()
-        frame.state = self.processor.get_state()
+        if frame:
+            frame.state = self.processor.get_state()
 
         return frame
