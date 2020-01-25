@@ -4,7 +4,7 @@
 
     Manages multiple cameras by serial number.
 """
-
+import dataclasses
 import enum
 from typing import Dict
 
@@ -16,55 +16,105 @@ from pxl_camera.detect.device_detector import DeviceDetector
 
 class CameraManager(Actor):
 
+    @dataclasses.dataclass
+    class Config:
+        width: int
+        height: int
+        autofocus: bool
+        focus: int
+        filter: bool
+
+    def _to_camera_config(self, serial: str, config: Config, device: str = None):
+        if device is None:
+            device = self.device_detector.get_dev_path(serial)
+
+        if config is None:
+            return None
+
+        return Camera.Config(
+            device=device,
+            width=config.width,
+            height=config.height,
+            autofocus=config.autofocus,
+            focus=config.focus,
+            filter=config.filter,
+        )
+
     def __init__(self):
         super(CameraManager, self).__init__()
 
         self.device_detector = DeviceDetector()
         self.device_detector.start(actor=self, method='handle_device_event')
 
-        self.config = dict()
-        self.camera = dict()
+        self.config: Dict[str, CameraManager.Config] = dict()
+        self.camera: Dict[str, Camera] = dict()
 
     def handle_device_event(self, device: str, serial: str, action: str):
 
         self.logger.info(f'Device event: {device} [{serial}] - {action}')
 
-        # if action == 'remove':
-        #     self.cameras[serial].stop()
-        #     self.cameras[serial].kill()
-        #     del self.cameras[serial]
-        #
-        # if action == 'add':
-        #     self.cameras[serial] = Camera()
+        if action == 'add':
+            manager_config = self.config.get(serial, None)
+            camera_config = self._to_camera_config(serial, manager_config, device)
+
+            self.camera[serial] = Camera(camera_config)
+
+        if action == 'remove':
+            self.camera[serial].stop()
+            self.camera[serial].kill()
+            del self.camera[serial]
 
     #
     def get_config(self):
         return self.config
 
-    def set_config(self, config: Dict[str, Camera.Config]):
+    def set_config(self, config: Dict[str, Config]):
         """
-            Updates config with given values.
+            Sets manager config values for each camera serial number.
 
         config = {
-            [serial_1]: Camera.Config(...),
-            [serial_2]: Camera.Config(...),
+            [serial_1]: Config(...),
+            [serial_2]: Config(...),
             ...
         }
         """
 
-        for serial, camera_config in config.items():
+        # Load all specified camera configs
+        for serial, manager_config in config.items():
+            old_config = self.config.get(serial, None)
+            new_config = self._to_camera_config(serial, manager_config)
 
-            # Stop already started Camera
+            if old_config == new_config:
+                continue
+
+            if serial in self.camera and self._needs_restart(old_config, new_config):
+                self.camera[serial].stop()
+                self.camera[serial].start(new_config)
+
+        # Stop all unspecified cameras and remove all unspecified config
+        for serial in self.config.keys() - config.keys():
+            self.config.pop(serial)
+
             if serial in self.camera:
                 self.camera[serial].stop()
-            else:
-                self.camera[serial] = Camera()
-
-            # Start new one
-            self.camera[serial].start(camera_config)
 
         # Save config
         self.config = config
+
+    @staticmethod
+    def _needs_restart(old_config: Camera.Config, new_config: Camera.Config):
+        """
+            Checks whether a change in config requires Camera restart.
+        """
+
+        if old_config is None:
+            return False
+
+        return any([
+            old_config.device != new_config.device,
+            old_config.width != new_config.width,
+            old_config.height != new_config.height,
+        ])
 
     #
     def get_devices(self):

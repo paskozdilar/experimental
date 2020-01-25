@@ -31,6 +31,9 @@ config = Camera.Config(
     device='/dev/video2',
     width=2*1920,
     height=2*1080,
+    autofocus=False,
+    focus=70,
+    filter=False,
 )
 
 
