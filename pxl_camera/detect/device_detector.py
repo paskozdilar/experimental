@@ -181,6 +181,7 @@ class DeviceDetector(Actor):
 
             Updates the device mapping list and calls the method of the actor (passed
             through the constructor) with two arguments:
+              - device: v4l2 device node of the connected camera ['/dev/videoX']
               - serial: serial number of the connected camera
               - action: 'add' and 'remove' are relevant ones. Others can be ignored.
         """
