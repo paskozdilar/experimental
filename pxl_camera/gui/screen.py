@@ -2,8 +2,6 @@
     Reference UI implementation for live-streaming frames, setting focus
     and general camera debugging.
 
-    TODO: Add base image resetting GUI method
-
     MAYBE: Refactor - remove controlling logic from the UI and just use it as
            an interface to some internal mechanism?
 """
