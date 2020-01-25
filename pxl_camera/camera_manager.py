@@ -16,6 +16,14 @@ from pxl_camera.detect.device_detector import DeviceDetector
 
 class CameraManager(Actor):
 
+    # Single camera status
+    class Status(str, enum.Enum):
+        IDLE = 'IDLE'
+        ACTIVE = 'ACTIVE'
+        UNPLUGGED = 'UNPLUGGED'
+        MALFUNCTIONED = 'MALFUNCTIONED'
+
+    # Pure camera config
     @dataclasses.dataclass
     class Config:
         width: int
@@ -43,13 +51,17 @@ class CameraManager(Actor):
     def __init__(self):
         super(CameraManager, self).__init__()
 
-        self.device_detector = DeviceDetector()
-        self.device_detector.start(actor=self, method='handle_device_event')
-
         self.config: Dict[str, CameraManager.Config] = dict()
         self.camera: Dict[str, Camera] = dict()
 
+        self.device_detector = DeviceDetector()
+        self.device_detector.start(actor=self, method='handle_device_event')
+
     def handle_device_event(self, device: str, serial: str, action: str):
+        """
+            A hardware camera is connected to the computer if, and only if,
+            the hardware camera's serial number is in 'self.camera'.
+        """
 
         self.logger.info(f'Device event: {device} [{serial}] - {action}')
 
@@ -108,7 +120,7 @@ class CameraManager(Actor):
         """
 
         if old_config is None:
-            return False
+            return True
 
         return any([
             old_config.device != new_config.device,
@@ -127,12 +139,46 @@ class CameraManager(Actor):
     def get_status(self):
         """
             Returns status of all connected cameras.
+
+            Camera plugged in, no config:   IDLE
+            Camera plugged in, config:      ACTIVE
+            Camera unplugged, config:       UNPLUGGED
+            Camera unplugged, no config:    [ won't show up in status ]
         """
-        pass
+
+        return {
+            serial:
+                CameraManager.Status.ACTIVE
+                if serial in self.camera
+                else CameraManager.Status.UNPLUGGED
+                if serial in self.config
+                else CameraManager.Status.IDLE
+            for serial in set().union(self.camera.keys(), self.config.keys())
+        }
+
+    def _get_status(self, serial: str) -> Status:
+        """
+            Returns camera status for single serial number.
+        """
+
+        # TODO: Detect camera malfunction
+        if serial in self.config and serial in self.camera:
+            return CameraManager.Status.ACTIVE
+        elif serial in self.camera:
+            return CameraManager.Status.IDLE
+        else:
+            return CameraManager.Status.UNPLUGGED
 
     #
-    def get_frames(self, serials):
-        return {
-            serial: self.cameras[serial].get_frame()
-            for serial in serials
-        }
+    def get_frames(self):
+        frames = {}
+
+        for serial in self.config:
+            try:
+                frames[serial] = self.camera[serial].get_frame()\
+                    if serial in self.camera else None
+            except RuntimeError as exc:
+                self.logger.error(f'Runtime error: {exc}')
+                frames[serial] = None
+
+        return frames

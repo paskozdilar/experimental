@@ -1,49 +1,37 @@
-# import logging
-# import time
-#
-# from pxl_camera.camera_manager import CameraManager
-#
-# logging.basicConfig(
-#     level=logging.INFO,
-#     format="[%(name)s:%(filename)s:%(lineno)d] - [%(funcName)s] - %(asctime)s - %(levelname)s - %(message)s"
-# )
-#
-#
-# cm = CameraManager()
-#
-# while True:
-#     print(cm.get_devices())
-#     time.sleep(1)
-
 import logging
 import time
 
-from pxl_camera.camera import Camera
+from pxl_camera.camera_manager import CameraManager
 
-# Set logging level
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="[%(name)s:%(filename)s:%(lineno)d] - [%(funcName)s] - %(asctime)s - %(levelname)s - %(message)s"
 )
 
 
-config = Camera.Config(
-    device='/dev/video2',
-    width=2*1920,
-    height=2*1080,
-    autofocus=False,
-    focus=70,
-    filter=False,
-)
-
+cm = CameraManager()
+cm.set_config({
+    '38185000': CameraManager.Config(
+        width=1920,
+        height=1080,
+        autofocus=False,
+        focus=90,
+        filter=True,
+    ),
+    'ASDFQWER': CameraManager.Config(
+        width=1920,
+        height=1080,
+        autofocus=False,
+        focus=90,
+        filter=True,
+    )
+})
 
 while True:
+    print(cm.get_devices())
+    print(cm.get_status())
+    print(cm.get_config())
+    print(cm.get_frames())
+    time.sleep(1)
 
-    try:
-        with Camera(config=config) as camera:
-            while True:
-                camera.get_frame()
-    except RuntimeError as exc:
-        logging.error(f'MAIN ERROR: {exc}')
-        time.sleep(1)
 

@@ -56,7 +56,7 @@ class Processor(Actor):
 
             abs_diff_factor = image_processing.abs_diff_factor(abs_diff)
 
-            self.logger.info(f'Absolute diff: {abs_diff_factor}, Threshold: {threshold}')
+            #self.logger.debug(f'Absolute diff: {abs_diff_factor}, Threshold: {threshold}')
 
             return abs_diff_factor < threshold
 
