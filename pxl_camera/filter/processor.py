@@ -214,6 +214,5 @@ class Processor(Actor):
 
     def set_state(self, state: State, _requeue_worker=False):
         self.state = state
-
         if self.started and _requeue_worker:
             self._ping_worker()
