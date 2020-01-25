@@ -22,19 +22,19 @@ class Camera(Actor):
         device: str
         width: int
         height: int
+        filter: bool = True
 
-    def __init__(self, config: Config = None, _filter: bool = True):
+    def __init__(self, config: Config = None):
         super(Camera, self).__init__()
 
         self.capture = RawCapture()
         self.muxer = FrameMuxer()
         self.processor = Processor()
-        self._filter = False
 
         if config is not None:
             self.start(config)
 
-    def __call__(self, config: Config = None, _filter: bool = True):
+    def __call__(self, config: Config = None):
         if not isinstance(config, Camera.Config):
             raise TypeError(f'config [{type(config)}] not instance of Config.Config')
         else:
@@ -47,7 +47,7 @@ class Camera(Actor):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
 
-    def start(self, config: Config, _filter=True):
+    def start(self, config: Config):
         self.logger.info(f'Starting Camera [{config}]')
 
         capture_config = RawCapture.Config(
@@ -59,17 +59,13 @@ class Camera(Actor):
         self.capture.start(config=capture_config)
         self.muxer.start(capture_actor=self.capture)
 
-        if _filter:
+        if config.filter:
             self.processor.start(muxer_actor=self.muxer)
-
-        self._filter = _filter
 
     def stop(self):
         self.processor.stop()
         self.muxer.stop()
         self.capture.stop()
-
-        self._filter = False
 
     #
     def get_focus(self):
@@ -87,7 +83,7 @@ class Camera(Actor):
 
     #
     def get_diff_frame(self):
-        return self.processor.get_diff_frame() if self._filter else None
+        return self.processor.get_diff_frame()
 
     def set_diff_frame(self, frame):
         self.processor.set_diff_frame(frame)
