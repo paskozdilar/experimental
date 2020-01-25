@@ -23,6 +23,8 @@ class Camera(Actor):
         width: int = None
         height: int = None
         filter: bool = None
+        autofocus: bool = None
+        focus: bool = None
 
     def __init__(self, config: Config = None):
         super(Camera, self).__init__()
@@ -54,6 +56,8 @@ class Camera(Actor):
             device=config.device,
             frame_width=config.width,
             frame_height=config.height,
+            autofocus=config.autofocus,
+            focus=config.focus,
         )
 
         self.capture.start(config=capture_config)
