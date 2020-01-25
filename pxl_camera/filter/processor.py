@@ -91,6 +91,7 @@ class Processor(Actor):
 
             if not move and base_frame is not None:
                 self.logger.debug(f'Searching for base')
+                # TODO: Add closing to equal() for base detection...
                 base = self.equal(
                     cv2.cvtColor(frame.frame, cv2.COLOR_RGB2GRAY),
                     cv2.cvtColor(base_frame.frame, cv2.COLOR_RGB2GRAY),
