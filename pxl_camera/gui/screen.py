@@ -321,7 +321,11 @@ class Screen(Actor):
         cv2.imshow(self.name, self.image)
 
     def wait(self, timeout=0):
-        key_num = cv2.waitKey(timeout)
+        try:
+            key_num = cv2.waitKey(timeout)
+        except BaseException as bex:
+            self.logger.critical(bex, exc_info=True)
+            return
 
         if key_num not in set(map(int, Key)):
             return Key.UNKNOWN
