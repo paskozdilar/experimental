@@ -217,7 +217,10 @@ class Screen(Actor):
             by another actor.
         """
         x1, y1, x2, y2 = self.new_roi.get()
-        width, height, _ = image_size(frame.frame)
+        width, height, channels = image_size(frame.frame)
+
+        if channels == 1:
+            frame.frame = cv2.cvtColor(frame.frame, cv2.COLOR_GRAY2RGB, frame.frame)
 
         font_height = height // 32
         thickness = height // 256

@@ -11,7 +11,7 @@ def image_size(image):
     if isinstance(image, cv2.UMat):
         height = len(image.get())
         width = len(image.get()[0])
-        channels = len(image.get()[0][0])
+        channels = len(image.get()[0][0]) if not isinstance(image.get()[0][0], numpy.uint8) else 1
     elif isinstance(image, numpy.ndarray):
         height = len(image)
         width = len(image[0])
