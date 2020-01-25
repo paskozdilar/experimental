@@ -77,7 +77,7 @@ class Processor(Actor):
             # return grid_diff < GRID_THRESHOLD
 
         def process_frame(self, frame: Frame, last_frame: Frame, base_frame: Frame, processor, roi: tuple):
-            if frame is None:
+            if frame is None or frame.frame is None:
                 processor.set_state(Processor.State.NONE, _requeue_worker=True)
                 return
 
