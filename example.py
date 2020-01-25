@@ -4,6 +4,8 @@
     Outputs images into ./frames/ directory with timestamp format defined in Frame class.
 """
 
+# TODO: Rewrite with camera manager
+
 import logging
 import os
 import time
