@@ -22,9 +22,9 @@ class Camera(Actor):
         device: str = None
         width: int = None
         height: int = None
-        filter: bool = None
         autofocus: bool = None
         focus: bool = None
+        filter: bool = None
 
     def __init__(self, config: Config = None):
         super(Camera, self).__init__()
