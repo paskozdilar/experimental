@@ -212,15 +212,26 @@ class CameraManager(Actor):
             # else CameraManager.Status.MALFUNCTIONED
 
     #
-    def get_frames(self):
+    def get_frames(self, *args):
+        """
+            - get_frames() gets frames from all configured cameras.
+
+            - get_frames(serial_1, serial_2, ..., serial_n) gets frames
+              from all specified serials.
+        """
+        if args:
+            serials = args
+        else:
+            serials = self.config.keys()
+
         frames = {}
 
-        for serial in self.config:
+        for serial in serials:
             try:
                 frames[serial] = self.camera[serial].get_frame()\
                     if serial in self.camera else None
-            except RuntimeError as exc:
-                self.logger.error(f'Runtime error: {exc}')
+            except (RuntimeError, KeyError) as exc:
+                self.logger.error(f'get_frames error: {exc}')
                 frames[serial] = None
 
         return frames
