@@ -33,7 +33,7 @@ class CameraManager(Actor):
         filter: bool
         roi: Tuple[int, int, int, int]
 
-    def _to_camera_config(self, serial: str, config: Config, device: str = None):
+    def _to_camera_config(self, serial: str, config: Config, device: str = None) -> Camera.Config:
         if device is None:
             device = self.device_detector.get_dev_path(serial)
 
@@ -151,7 +151,7 @@ class CameraManager(Actor):
 
         updated_config = Camera.Config(**dataclasses.asdict(old_config))
 
-        for key, value in dataclasses.asdict(new_config):
+        for key, value in dataclasses.asdict(new_config).items():
             if value is not None and value != getattr(old_config, key):
                 setattr(updated_config, key, value)
 
