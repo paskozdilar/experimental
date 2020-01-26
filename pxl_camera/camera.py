@@ -23,11 +23,13 @@ class Camera(Actor):
         width: int = None
         height: int = None
         autofocus: bool = None
-        focus: bool = None
+        focus: int = None
         filter: bool = None
 
     def __init__(self, config: Config = None):
         super(Camera, self).__init__()
+
+        self.config = config
 
         self.capture = RawCapture()
         self.muxer = FrameMuxer()
@@ -52,11 +54,12 @@ class Camera(Actor):
     def start(self, config: Config):
         self.logger.info(f'Starting Camera [{config}]')
 
+        self.config = config
+
         capture_config = RawCapture.Config(
             device=config.device,
             frame_width=config.width,
             frame_height=config.height,
-            autofocus=config.autofocus,
             focus=config.focus,
         )
 
@@ -70,6 +73,13 @@ class Camera(Actor):
         self.processor.stop()
         self.muxer.stop()
         self.capture.stop()
+
+    #
+    def get_filter(self):
+        return self.config.filter
+
+    def set_filter(self, filter: bool):
+        self.config.filter = filter
 
     #
     def get_focus(self):
