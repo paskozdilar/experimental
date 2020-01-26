@@ -1,6 +1,6 @@
 import setuptools
 
-VERSION = '2.0.1'
+VERSION = '2.0.0'
 
 setuptools.setup(
     name="pxl_camera",
