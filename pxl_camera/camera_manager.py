@@ -116,13 +116,14 @@ class CameraManager(Actor):
                         old_filter = self.camera[serial].get_filter()
                         new_filter = value
 
-                        self.camera[serial].set_filter(value)
-
                         # Turn the filter off then on to reset it
                         # ...or do we need a more sophisticated mechanism?
                         # Maybe filter frame in message?
                         if new_filter and not old_filter:
                             self.camera[serial].reset_filter()
+
+                        self.camera[serial].set_filter(value)
+
                     elif key == 'roi':
                         if isinstance(value, tuple) and \
                                 len(value) == 4 and \
