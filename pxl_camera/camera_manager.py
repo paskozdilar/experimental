@@ -6,7 +6,7 @@
 """
 import dataclasses
 import enum
-from typing import Dict
+from typing import Dict, Tuple
 
 from pxl_actor.actor import Actor
 
@@ -26,11 +26,13 @@ class CameraManager(Actor):
     # Pure camera config
     @dataclasses.dataclass
     class Config:
-        width: int
-        height: int
-        autofocus: bool
-        focus: int
-        filter: bool
+        width: int = None
+        height: int = None
+        autofocus: bool = None
+        focus: int = None
+        filter: bool = None
+        reset_filter: bool = None
+        roi: Tuple[int, int, int, int] = None
 
     def _to_camera_config(self, serial: str, config: Config, device: str = None):
         if device is None:
@@ -96,12 +98,16 @@ class CameraManager(Actor):
             old_config = self.config.get(serial, None)
             new_config = self._to_camera_config(serial, manager_config)
 
-            if old_config == new_config:
+            self._update_config(new_config)
+
+            if old_config == new_config or serial not in self.camera:
                 continue
 
-            if serial in self.camera and self._needs_restart(old_config, new_config):
+            if self._needs_restart(old_config, new_config):
                 self.camera[serial].stop()
                 self.camera[serial].start(new_config)
+            else:
+                self.camera[serial]
 
         # Stop all unspecified cameras and remove all unspecified config
         for serial in self.config.keys() - config.keys():
@@ -112,6 +118,11 @@ class CameraManager(Actor):
 
         # Save config
         self.config = config
+
+    def _update_config(self, new_config: Camera.Config):
+        for key, value in dataclasses.asdict(new_config).items():
+            if value is not None:
+                setattr(self.config, key, value)
 
     @staticmethod
     def _needs_restart(old_config: Camera.Config, new_config: Camera.Config):

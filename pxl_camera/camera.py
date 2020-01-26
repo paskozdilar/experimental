@@ -79,6 +79,14 @@ class Camera(Actor):
         return self.config.filter
 
     def set_filter(self, filter: bool):
+        old_filter = self.config.filter
+        new_filter = filter
+
+        if new_filter is True and old_filter is False:
+            self.processor.start(self.muxer)
+        if new_filter is False and old_filter is True:
+            self.processor.stop()
+
         self.config.filter = filter
 
     #
