@@ -92,6 +92,14 @@ class Camera(Actor):
     def set_diff_frame(self, frame):
         self.processor.set_diff_frame(frame)
 
+    # Note: 'roi' is a tuple of normalized coordinates (x1, y1, x2, y2)
+    #       (i.e. x1, y1, x2, y2 are all real numbers between 0.0 and 1.0)
+    def get_roi(self):
+        return self.processor.get_roi()
+
+    def set_roi(self, roi: tuple):
+        self.processor.set_roi(roi)
+
     #
     def get_frame(self):
         frame = self.muxer.get_frame()

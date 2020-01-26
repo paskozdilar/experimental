@@ -176,7 +176,8 @@ class Processor(Actor):
             no_wait=True,
         )
 
-    # Interface
+    # Note: 'roi' is a tuple of normalized coordinates (x1, y1, x2, y2)
+    #       (i.e. x1, y1, x2, y2 are all real numbers between 0.0 and 1.0)
     def get_roi(self):
         return self.roi
 

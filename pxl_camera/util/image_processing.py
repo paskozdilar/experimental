@@ -27,8 +27,9 @@ def crop(image: cv2.UMat, roi: tuple):
         Returns given image cropped to the unit-based coordinates
         (x1, y1, x2, y2 are real numbers between 0 and 1).
     :param image: cv2.UMat object containing RGB frame.
-    :param roi: tuple containing coordinates (x1, y1, x2, y2) where x1,y1 is
-                the upper-left corner and x2,y2 is bottom-right corner (opt.)
+    :param roi: tuple containing normalized coordinates (x1, y1, x2, y2)
+                where x1,y1 is the upper-left corner and x2,y2 is bottom-right
+                corner (opt.)
     :return: cv.UMat object of the cropped image
     """
     width, height, _ = image_size(image)
@@ -60,8 +61,9 @@ def abs_diff(image_a: cv2.UMat, image_b: cv2.UMat, roi: tuple = None):
         Calculates absolute difference between two RGB frames.
     :param image_a: Image A.
     :param image_b: Image B.
-    :param roi: tuple containing coordinates (x1, y1, x2, y2) where x1,y1 is
-                the upper-left corner and x2,y2 is bottom-right corner (opt.)
+    :param roi: tuple containing normalized coordinates (x1, y1, x2, y2)
+                where x1,y1 is the upper-left corner and x2,y2 is bottom-right
+                corner (opt.)
     :return: Per-channel absolute difference between A and B.
     """
 
