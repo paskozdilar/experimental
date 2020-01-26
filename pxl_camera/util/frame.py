@@ -27,7 +27,7 @@ class Frame:
             return self.timestamp.strftime(self.fmt)
 
     def get_jpeg(self, quality=95):
-        return cv2.imencode('.jpg', self.frame, [cv2.IMWRITE_JPEG_QUALITY, quality])[1]
+        return cv2.imencode('.jpg', self.frame, [cv2.IMWRITE_JPEG_QUALITY, quality])[1].tostring()
 
     def get_state(self) -> str:
         return self.state.name
