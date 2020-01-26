@@ -20,6 +20,6 @@ setuptools.setup(
     install_requires=[
         "pyudev",
         "opencv-python",
-        "pxl-actor @ git+ssh://git@github.com/paskozdilar/pxl-actor.git#egg=pxl-actor-1.0.0"
+        "pxl-actor @ git+ssh://git@github.com/paskozdilar/pxl-actor.git",
     ],
 )

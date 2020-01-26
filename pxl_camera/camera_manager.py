@@ -97,12 +97,14 @@ class CameraManager(Actor):
             old_config = self.config.get(serial, None)
             new_config = self._to_camera_config(serial, manager_config)
 
+            self.config[serial] = self._updated_config(old_config, new_config)
+
             if old_config == new_config or serial not in self.camera:
                 continue
 
             if self._needs_restart(old_config, new_config):
                 self.camera[serial].stop()
-                self.camera[serial].start(self.config)
+                self.camera[serial].start(self.config[serial])
             else:
                 for key, value in dataclasses.asdict(new_config).items():
                     if value is None:
@@ -139,8 +141,21 @@ class CameraManager(Actor):
             if serial in self.camera:
                 self.camera[serial].stop()
 
-        # Save config
-        self.config = config
+    @staticmethod
+    def _updated_config(old_config: Camera.Config, new_config: Camera.Config):
+        """
+            Updates old config with specified values from the new config.
+        """
+        if old_config is None:
+            return Camera.Config(**dataclasses.asdict(new_config))
+
+        updated_config = Camera.Config(**dataclasses.asdict(old_config))
+
+        for key, value in dataclasses.asdict(new_config):
+            if value is not None and value != getattr(old_config, key):
+                setattr(updated_config, key, value)
+
+        return updated_config
 
     @staticmethod
     def _needs_restart(old_config: Camera.Config, new_config: Camera.Config):

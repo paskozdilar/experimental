@@ -17,6 +17,7 @@ cm.set_config({
         autofocus=False,
         focus=90,
         filter=True,
+        roi=(0.0, 0.0, 1.0, 1.0),
     ),
     'ASDFQWER': CameraManager.Config(
         width=1920,
@@ -24,6 +25,7 @@ cm.set_config({
         autofocus=False,
         focus=90,
         filter=True,
+        roi=(0.0, 0.0, 1.0, 1.0),
     )
 })
 
