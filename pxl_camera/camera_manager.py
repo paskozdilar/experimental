@@ -80,7 +80,7 @@ class CameraManager(Actor):
     def get_config(self):
         return self.config
 
-    def set_config(self, config: Config) -> object:
+    def set_config(self, config: Dict[str, Config]) -> object:
         """
             Sets manager config values for each camera serial number.
 
