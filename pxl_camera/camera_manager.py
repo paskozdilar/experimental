@@ -147,15 +147,11 @@ class CameraManager(Actor):
         """
 
         return {
-            serial:
-                CameraManager.Status.UNPLUGGED
-                if serial not in self.camera
-                else CameraManager.Status.IDLE
-                if serial not in self.config
-                else CameraManager.Status.ACTIVE
-                # if [camera is working]
-                # else CameraManager.Status.MALFUNCTIONED
-            for serial in set().union(self.camera.keys(), self.config.keys())
+            serial: self._get_status(serial)
+            for serial in set().union(
+                self.camera.keys(),
+                self.config.keys()
+            )
         }
 
     def _get_status(self, serial: str) -> Status:
@@ -163,13 +159,13 @@ class CameraManager(Actor):
             Returns camera status for single serial number.
         """
 
-        # TODO: Detect camera malfunction
-        if serial in self.config and serial in self.camera:
-            return CameraManager.Status.ACTIVE
-        elif serial in self.camera:
-            return CameraManager.Status.IDLE
-        else:
-            return CameraManager.Status.UNPLUGGED
+        return CameraManager.Status.UNPLUGGED \
+            if serial not in self.camera \
+            else CameraManager.Status.IDLE \
+            if serial not in self.config \
+            else CameraManager.Status.ACTIVE
+            # if [camera is working]
+            # else CameraManager.Status.MALFUNCTIONED
 
     #
     def get_frames(self):
