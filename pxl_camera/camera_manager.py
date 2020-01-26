@@ -148,11 +148,13 @@ class CameraManager(Actor):
 
         return {
             serial:
-                CameraManager.Status.ACTIVE
-                if serial in self.camera
-                else CameraManager.Status.UNPLUGGED
-                if serial in self.config
+                CameraManager.Status.UNPLUGGED
+                if serial not in self.camera
                 else CameraManager.Status.IDLE
+                if serial not in self.config
+                else CameraManager.Status.ACTIVE
+                # if [camera is working]
+                # else CameraManager.Status.MALFUNCTIONED
             for serial in set().union(self.camera.keys(), self.config.keys())
         }
 
