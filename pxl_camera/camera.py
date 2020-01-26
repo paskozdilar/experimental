@@ -61,6 +61,7 @@ class Camera(Actor):
             frame_width=config.width,
             frame_height=config.height,
             focus=config.focus,
+            autofocus=config.autofocus
         )
 
         self.capture.start(config=capture_config)
@@ -89,18 +90,38 @@ class Camera(Actor):
 
         self.config.filter = filter
 
+    def reset_filter(self):
+        """
+            Automatically loads last frame from frame muxer and sets it as the
+            base frame of Processor.
+        """
+        self.set_base_frame(self.muxer.get_frame())
+
+    #
+    def get_autofocus(self):
+        return self.config.autofocus
+
+    def set_autofocus(self, autofocus: bool):
+        success = self.capture.set_autofocus(autofocus)
+        if success:
+            self.config.autofocus = autofocus
+        return success
+
     #
     def get_focus(self):
         return self.capture.get_focus()
 
     def set_focus(self, focus: int):
-        return self.capture.set_focus(focus)
+        success = self.capture.set_focus(focus)
+        if success:
+            self.config.focus = focus
+        return success
 
     #
     def get_base_frame(self):
         return self.processor.get_base_frame()
 
-    def set_base_frame(self, base_frame):
+    def set_base_frame(self, base_frame):  # Frame
         self.processor.set_base_frame(base_frame)
 
     #

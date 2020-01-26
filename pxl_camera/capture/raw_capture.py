@@ -68,11 +68,19 @@ class RawCapture(Actor):
             self.capture.release()
         self.config = RawCapture.Config()
 
-    def set_focus(self, focus):
-        if focus == 0:
-            self.config.autofocus = True
-            return self.capture.set(cv2.CAP_PROP_AUTOFOCUS, True)
+    def get_autofocus(self):
+        return self.config.autofocus
 
+    def set_autofocus(self, autofocus: bool):
+        success = self.capture.set(cv2.CAP_PROP_AUTOFOCUS, autofocus)
+        if success:
+            self.config.autofocus = autofocus
+        return success
+
+    def get_focus(self):
+        return self.config.focus if not self.config.autofocus else None
+
+    def set_focus(self, focus):
         if self.config.autofocus:
             success = self.capture.set(cv2.CAP_PROP_AUTOFOCUS, False)
             if not success:
@@ -82,9 +90,6 @@ class RawCapture(Actor):
         if success:
             self.config.focus = focus
         return success
-
-    def get_focus(self):
-        return self.config.focus
 
     def set_config(self, config: Config):
         """

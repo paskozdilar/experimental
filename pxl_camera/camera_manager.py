@@ -26,13 +26,12 @@ class CameraManager(Actor):
     # Pure camera config
     @dataclasses.dataclass
     class Config:
-        width: int = None
-        height: int = None
-        autofocus: bool = None
-        focus: int = None
-        filter: bool = None
-        reset_filter: bool = None
-        roi: Tuple[int, int, int, int] = None
+        width: int
+        height: int
+        autofocus: bool
+        focus: int
+        filter: bool
+        roi: Tuple[int, int, int, int]
 
     def _to_camera_config(self, serial: str, config: Config, device: str = None):
         if device is None:
@@ -98,16 +97,39 @@ class CameraManager(Actor):
             old_config = self.config.get(serial, None)
             new_config = self._to_camera_config(serial, manager_config)
 
-            self._update_config(new_config)
-
             if old_config == new_config or serial not in self.camera:
                 continue
 
             if self._needs_restart(old_config, new_config):
                 self.camera[serial].stop()
-                self.camera[serial].start(new_config)
+                self.camera[serial].start(self.config)
             else:
-                self.camera[serial]
+                for key, value in dataclasses.asdict(new_config).items():
+                    if value is None:
+                        continue
+
+                    if key == 'autofocus':
+                        self.camera[serial].set_autofocus(value)
+                    elif key == 'focus':
+                        self.camera[serial].set_focus(value)
+                    elif key == 'filter':
+                        old_filter = self.camera[serial].get_filter()
+                        new_filter = value
+
+                        self.camera[serial].set_filter(value)
+
+                        # Turn the filter off then on to reset it
+                        # ...or do we need a more sophisticated mechanism?
+                        # Maybe filter frame in message?
+                        if new_filter and not old_filter:
+                            self.camera[serial].reset_filter()
+                    elif key == 'roi':
+                        if isinstance(value, tuple) and \
+                                len(value) == 4 and \
+                                all(0.0 <= coord <= 1.0 for coord in value):
+                            self.camera[serial].set_roi(value)
+                        else:
+                            self.logger.warning(f'Invalid roi [{serial}]: {value}')
 
         # Stop all unspecified cameras and remove all unspecified config
         for serial in self.config.keys() - config.keys():
@@ -118,11 +140,6 @@ class CameraManager(Actor):
 
         # Save config
         self.config = config
-
-    def _update_config(self, new_config: Camera.Config):
-        for key, value in dataclasses.asdict(new_config).items():
-            if value is not None:
-                setattr(self.config, key, value)
 
     @staticmethod
     def _needs_restart(old_config: Camera.Config, new_config: Camera.Config):
