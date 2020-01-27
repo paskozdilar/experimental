@@ -85,7 +85,7 @@ try:
                 if state == Processor.State.GOOD:
                     screen.set_status('GOOD', color='green')
                     with open(f'frames/{frame.get_timestamp()}.jpeg', 'wb') as image_file:
-                        image_file.write(frame.get_jpeg().tostring())
+                        image_file.write(frame.get_jpeg())
                         screen.set_index(index)
                         index += 1
                 elif state == Processor.State.BASE:
