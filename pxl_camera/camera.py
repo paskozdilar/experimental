@@ -90,13 +90,6 @@ class Camera(Actor):
 
         self.config.filter = filter
 
-    def reset_filter(self):
-        """
-            Automatically loads last frame from frame muxer and sets it as the
-            base frame of Processor.
-        """
-        self.set_base_frame(self.muxer.get_frame())
-
     #
     def get_autofocus(self):
         return self.config.autofocus
@@ -123,6 +116,13 @@ class Camera(Actor):
 
     def set_base_frame(self, base_frame):  # Frame
         self.processor.set_base_frame(base_frame)
+
+    def capture_base_frame(self):
+        """
+            Automatically loads last frame from frame muxer and sets it as the
+            base frame of Processor.
+        """
+        self.set_base_frame(self.muxer.get_frame())
 
     #
     def get_diff_frame(self):

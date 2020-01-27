@@ -263,3 +263,12 @@ class CameraManager(Actor):
     def set_base_frames(self, base_frames: Dict[str, Any]):
         for serial in base_frames:
             self.camera[serial].set_base_frame(base_frames[serial])
+
+    def capture_base_frames(self, *args):
+        if not args:
+            args = self.config.keys()
+
+        frames = {}
+
+        for serial in args:
+            frames[serial] = self.camera[serial].capture_base_frame()
