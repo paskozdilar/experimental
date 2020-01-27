@@ -6,7 +6,7 @@
 """
 import dataclasses
 import enum
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Any
 
 from pxl_actor.actor import Actor
 
@@ -33,20 +33,20 @@ class CameraManager(Actor):
         filter: bool
         roi: Tuple[int, int, int, int]
 
-    def _to_camera_config(self, serial: str, config: Config, device: str = None) -> Camera.Config:
+    def _to_camera_config(self, serial: str, manager_config: Config, device: str = None) -> Camera.Config:
         if device is None:
             device = self.device_detector.get_dev_path(serial)
 
-        if config is None:
+        if manager_config is None:
             return None
 
         return Camera.Config(
             device=device,
-            width=config.width,
-            height=config.height,
-            autofocus=config.autofocus,
-            focus=config.focus,
-            filter=config.filter,
+            width=manager_config.width,
+            height=manager_config.height,
+            autofocus=manager_config.autofocus,
+            focus=manager_config.focus,
+            filter=manager_config.filter,
         )
 
     def __init__(self):
@@ -115,17 +115,7 @@ class CameraManager(Actor):
                     elif key == 'focus':
                         self.camera[serial].set_focus(value)
                     elif key == 'filter':
-                        old_filter = self.camera[serial].get_filter()
-                        new_filter = value
-
-                        # Turn the filter off then on to reset it
-                        # ...or do we need a more sophisticated mechanism?
-                        # Maybe filter frame in message?
-                        if new_filter and not old_filter:
-                            self.camera[serial].reset_filter()
-
                         self.camera[serial].set_filter(value)
-
                     elif key == 'roi':
                         if isinstance(value, tuple) and \
                                 len(value) == 4 and \
@@ -219,14 +209,12 @@ class CameraManager(Actor):
             - get_frames(serial_1, serial_2, ..., serial_n) gets frames
               from all specified serials.
         """
-        if args:
-            serials = args
-        else:
-            serials = self.config.keys()
+        if not args:
+            args = self.config.keys()
 
         frames = {}
 
-        for serial in serials:
+        for serial in args:
             try:
                 frames[serial] = self.camera[serial].get_frame()\
                     if serial in self.camera else None
@@ -235,3 +223,43 @@ class CameraManager(Actor):
                 frames[serial] = None
 
         return frames
+
+    def get_diff_frames(self, *args):
+        """
+            Same as get_frames(), except it returns the "diff" frames (where
+            filter is turned on).
+        """
+        if not args:
+            args = self.config.keys()
+
+        frames = {}
+
+        for serial in args:
+            try:
+                frames[serial] = self.camera[serial].get_diff_frame()\
+                    if serial in self.camera else None
+            except (RuntimeError, KeyError) as exc:
+                self.logger.error(f'get_frames error: {exc}')
+                frames[serial] = None
+
+        return frames
+
+    def get_base_frames(self, *args):
+        if not args:
+            args = self.config.keys()
+
+        frames = {}
+
+        for serial in args:
+            try:
+                frames[serial] = self.camera[serial].get_base_frame()\
+                    if serial in self.camera else None
+            except (RuntimeError, KeyError) as exc:
+                self.logger.error(f'get_frames error: {exc}')
+                frames[serial] = None
+
+        return frames
+
+    def set_base_frames(self, base_frames: Dict[str, Any]):
+        for serial in base_frames:
+            self.camera[serial].set_base_frame(base_frames[serial])
