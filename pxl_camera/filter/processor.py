@@ -159,6 +159,8 @@ class Processor(Actor):
         self.started = False
         self._muxer = None
 
+        self.state = Processor.State.NONE
+
     def _ping_worker(self):
         # Take new frame
         self.last_frame = self.frame
